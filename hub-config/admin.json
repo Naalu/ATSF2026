@@ -1,0 +1,19 @@
+{
+    "schema_version": "https://raw.githubusercontent.com/hubverse-org/schemas/main/v5.1.0/admin-schema.json",
+    "name": "FluSight ILI Template Hub",
+    "maintainer": "Consortium of Infectious Disease Modeling Hubs",
+    "contact": {
+        "name": "Li Shandross",
+        "email": "lshandross@umass.edu"
+    },
+    "repository": {
+        "host": "github",
+        "owner": "reichlab",
+        "name": "FluSight-ILI-template-hub"
+    },
+    "file_format": ["csv", "parquet"],
+    "timezone": "US/Eastern",
+    "cloud": {
+        "enabled": false
+    }
+}
