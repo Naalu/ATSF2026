@@ -1,15 +1,15 @@
 {
     "schema_version": "https://raw.githubusercontent.com/hubverse-org/schemas/main/v5.1.0/admin-schema.json",
-    "name": "FluSight ILI Template Hub",
-    "maintainer": "Consortium of Infectious Disease Modeling Hubs",
+    "name": "ATSF FluSight ILI Hub",
+    "maintainer": "The Fox Lab",
     "contact": {
-        "name": "Li Shandross",
-        "email": "lshandross@umass.edu"
+        "name": "Spencer Fox",
+        "email": "spencer.fox@nau.edu"
     },
     "repository": {
         "host": "github",
-        "owner": "reichlab",
-        "name": "FluSight-ILI-template-hub"
+        "owner": "Spencer Fox",
+        "name": "ATSF2026-hub"
     },
     "file_format": ["csv", "parquet"],
     "timezone": "US/Eastern",
