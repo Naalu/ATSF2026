@@ -8,7 +8,7 @@
     },
     "repository": {
         "host": "github",
-        "owner": "Spencer Fox",
+        "owner": "sjfox",
         "name": "ATSF2026-hub"
     },
     "file_format": ["csv", "parquet"],
