@@ -9,7 +9,7 @@ location_formal_names <- c("US National", paste("HHS Region", 1:10))
 loc_df <- data.frame(locations = locations, location = location_formal_names)
 
 ili_target_data_raw <- locations |>
-  purrr::map(pub_fluview, epiweeks = epirange(201040, 202010)) |>
+  purrr::map(pub_fluview, epiweeks = epirange(200335, 202035)) |>
   purrr::list_rbind()
 
 # raw target data
