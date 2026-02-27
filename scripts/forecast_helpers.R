@@ -1,11 +1,11 @@
 ###############################################################################
 # FILE: scripts/forecast_helpers.R
 #
-# Shared, model-agnostic utility functions for the FluSight ILI Sandbox Hub
-# forecast submission. Designed to be reused across multiple models (SNAIVE,
-# ETS, ARIMA, etc.) — model-specific logic lives in separate driver scripts.
+# Shared, model-agnostic utility functions for the FluSight ILI Sandbox Hub.
+# These are sourced automatically by forecast_engine.R and used by all model
+# configurations. You should never need to edit this file to add a new model.
 #
-# Functions provided:
+# Functions:
 #   load_and_prepare_tsibble()    — Load CSV, create tsibble
 #   get_origin_dates()            — Parse origin dates from tasks.json
 #   compute_quantiles_from_sims() — Empirical quantiles from bootstrap sims
@@ -14,12 +14,11 @@
 #   write_hub_csv()               — Write CSV with correct filename pattern
 #   plot_quantile_fan()           — Spot-check visualization
 #
-# Usage:
-#   source("scripts/forecast_helpers.R")
+# Constants:
+#   DATE_COL, QUANTILE_LEVELS, HUB_LOCATIONS, HUB_HORIZONS,
+#   EXPECTED_ROWS, EXPECTED_COLS
 #
-# Dependencies:
-#   tidyverse, tsibble, fable, fabletools, jsonlite, lubridate, ggplot2
-#   (loaded via library(fpp3); library(tidyverse) in your driver script)
+# Dependencies: tidyverse, tsibble, fable, fabletools, jsonlite, lubridate
 #
 ###############################################################################
 
