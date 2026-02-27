@@ -3,13 +3,14 @@
 #
 # Generic forecasting engine for the FluSight ILI Sandbox Hub (ATSF2026).
 # Takes a model configuration list and runs the complete pipeline:
-#   load data → preprocess → fit/simulate → quantiles → format → validate → write
+#   load data -> preprocess -> fit/simulate -> quantiles -> format ->
+#   validate -> write CSVs -> write metadata YAML
 #
 # This file is model-agnostic. All model-specific logic lives in config files
 # (e.g., configs/snaive_bc_bs.R). The engine handles two paths:
-#   1. Fable path — config provides model_fn; engine runs per-location
+#   1. Fable path -- config provides model_fn; engine runs per-location
 #      model() |> generate() pipeline
-#   2. Custom path — config provides custom_simulate_fn; engine delegates
+#   2. Custom path -- config provides custom_simulate_fn; engine delegates
 #      simulation entirely to the user's function
 #
 # Usage:
@@ -19,14 +20,157 @@
 #   run_diagnostics(result)              # optional: visual QA plots
 #
 # Provides:
-#   run_forecast(config)     — run the full pipeline, return result object
-#   run_diagnostics(result)  — produce diagnostic plots from a result object
+#   run_forecast(config)     -- run the full pipeline, return result object
+#   run_diagnostics(result)  -- produce diagnostic plots from a result object
 #
 # Dependencies:
 #   fpp3, tidyverse (loaded automatically)
 #   patchwork (required only for run_diagnostics)
 #
 ###############################################################################
+
+
+# =============================================================================
+# INTERNAL HELPERS (not exported, used only by the engine)
+# =============================================================================
+
+
+###############################################################################
+#' Validate a model configuration list
+#'
+#' Checks all required fields, hub naming rules (<=15 chars, alphanumeric +
+#' underscore), model specification, and metadata completeness. Called
+#' automatically at the start of run_forecast().
+#'
+#' @param config A named list. See configs/snaive_bc_bs.R for the spec.
+#' @return TRUE invisibly if all checks pass; stops with an error otherwise.
+###############################################################################
+validate_config <- function(config) {
+  
+  # --- Required top-level fields ---
+  required <- c("team_abbr", "model_abbr", "hub_path", "n_sims",
+                "min_train_weeks", "dev_mode", "run_loop", "overwrite",
+                "transform", "simulate_method")
+  missing <- setdiff(required, names(config))
+  if (length(missing) > 0) {
+    stop("Config missing required fields: ", paste(missing, collapse = ", "))
+  }
+  
+  # --- Model spec: must have model_fn OR custom_simulate_fn ---
+  if (is.null(config$model_fn) && is.null(config$custom_simulate_fn)) {
+    stop("Config must provide either model_fn (fable) or custom_simulate_fn (custom)")
+  }
+  
+  # --- Hub naming rules ---
+  # model-output/README.md: "Both team and model should be less than 15
+  # characters and not include hyphens or other special characters, with
+  # the exception of '_'."
+  name_pattern <- "^[a-zA-Z0-9_]+$"
+  for (field in c("team_abbr", "model_abbr")) {
+    val <- config[[field]]
+    if (!is.character(val) || length(val) != 1) {
+      stop(field, " must be a single character string")
+    }
+    if (nchar(val) > 15) {
+      stop(field, " '", val, "' exceeds 15-character limit (", nchar(val), " chars)")
+    }
+    if (!grepl(name_pattern, val)) {
+      stop(field, " '", val, "' contains invalid characters. ",
+           "Only alphanumeric and underscore allowed.")
+    }
+  }
+  
+  # --- Metadata sub-list ---
+  if (is.null(config$metadata)) {
+    stop("Config must include a 'metadata' list for YAML generation. ",
+         "See configs/snaive_bc_bs.R for the required fields.")
+  }
+  meta_required <- c("team_name", "model_name", "model_contributors",
+                     "license", "designated_model", "data_inputs",
+                     "methods", "methods_long",
+                     "ensemble_of_models", "ensemble_of_hub_models")
+  meta_missing <- setdiff(meta_required, names(config$metadata))
+  if (length(meta_missing) > 0) {
+    stop("Config$metadata missing required fields: ",
+         paste(meta_missing, collapse = ", "))
+  }
+  
+  # Hub schema: methods must be <200 chars
+  if (nchar(config$metadata$methods) > 200) {
+    stop("metadata$methods exceeds 200-character limit (",
+         nchar(config$metadata$methods), " chars). ",
+         "Use methods_long for the full description.")
+  }
+  
+  invisible(TRUE)
+}
+
+
+###############################################################################
+#' Write model metadata YAML from config fields
+#'
+#' Generates model-metadata/{team_abbr}-{model_abbr}.yml following the hub's
+#' metadata schema. Matches the format of existing hub metadata files
+#' (e.g., model-metadata/atsf-meanbs.yml).
+#'
+#' @param config The full model config list.
+#' @param hub_path Path to the hub root directory.
+#' @param team_model The combined "team-model" string.
+#' @return The file path of the written YAML (invisibly).
+###############################################################################
+write_metadata <- function(config, hub_path, team_model) {
+  
+  meta_dir  <- file.path(hub_path, "model-metadata")
+  meta_path <- file.path(meta_dir, paste0(team_model, ".yml"))
+  meta      <- config$metadata
+  
+  if (!dir.exists(meta_dir)) dir.create(meta_dir, recursive = TRUE)
+  
+  # Check overwrite
+  if (file.exists(meta_path) && !config$overwrite) {
+    cat("  Metadata exists, skipping (overwrite = FALSE):", basename(meta_path), "\n")
+    return(invisible(meta_path))
+  }
+  
+  # Build contributor YAML blocks manually to match hub format:
+  #   model_contributors: [
+  #     { "name": "...", "affiliation": "...", "email": "..." }
+  #   ]
+  contrib_entries <- vapply(meta$model_contributors, function(c) {
+    fields <- character(0)
+    if (!is.null(c$name))        fields <- c(fields, sprintf('"name": "%s"', c$name))
+    if (!is.null(c$affiliation)) fields <- c(fields, sprintf('"affiliation": "%s"', c$affiliation))
+    if (!is.null(c$email))       fields <- c(fields, sprintf('"email": "%s"', c$email))
+    if (!is.null(c$orcid))       fields <- c(fields, sprintf('"orcid": "%s"', c$orcid))
+    paste0("  {\n    ", paste(fields, collapse = ",\n    "), "\n  }")
+  }, character(1))
+  
+  contrib_yaml <- paste0("[\n", paste(contrib_entries, collapse = ",\n"), "\n]")
+  
+  # Format booleans as YAML lowercase
+  fmt_bool <- function(x) if (isTRUE(x)) "true" else "false"
+  
+  # Assemble YAML lines
+  yaml_lines <- c(
+    sprintf('team_name: "%s"', meta$team_name),
+    sprintf('team_abbr: "%s"', config$team_abbr),
+    sprintf('model_name: "%s"', meta$model_name),
+    sprintf('model_abbr: "%s"', config$model_abbr),
+    sprintf('designated_model: %s', fmt_bool(meta$designated_model)),
+    paste0('model_contributors: ', contrib_yaml),
+    sprintf('license: "%s"', meta$license),
+    sprintf('data_inputs: %s', meta$data_inputs),
+    sprintf('methods: %s', meta$methods),
+    sprintf('methods_long: %s', meta$methods_long),
+    sprintf('ensemble_of_models: %s', fmt_bool(meta$ensemble_of_models)),
+    sprintf('ensemble_of_hub_models: %s', fmt_bool(meta$ensemble_of_hub_models))
+  )
+  
+  writeLines(yaml_lines, meta_path)
+  cat("  Wrote metadata:", basename(meta_path), "\n")
+  
+  invisible(meta_path)
+}
 
 
 ###############################################################################
@@ -44,23 +188,12 @@ run_forecast <- function(config) {
   # VALIDATE CONFIG
   # =========================================================================
   
-  required <- c("team_abbr", "model_abbr", "hub_path", "n_sims",
-                "min_train_weeks", "dev_mode", "run_loop",
-                "transform", "simulate_method")
-  missing <- setdiff(required, names(config))
-  if (length(missing) > 0) {
-    stop("Config missing required fields: ", paste(missing, collapse = ", "))
-  }
-  
-  if (is.null(config$model_fn) && is.null(config$custom_simulate_fn)) {
-    stop("Config must provide either model_fn (fable) or custom_simulate_fn (custom)")
-  }
+  validate_config(config)
   
   # =========================================================================
   # SETUP
   # =========================================================================
   
-  # Derived identifiers and paths
   team_model <- paste0(config$team_abbr, "-", config$model_abbr)
   data_path  <- file.path(config$hub_path, "target-data", "time-series.csv")
   tasks_path <- file.path(config$hub_path, "hub-config", "tasks.json")
@@ -141,6 +274,19 @@ run_forecast <- function(config) {
   }
   
   # =========================================================================
+  # STEP 4: WRITE METADATA YAML
+  #
+  # Generates model-metadata/{team}-{model}.yml from config$metadata fields.
+  # Respects the overwrite flag. This runs every time so that metadata stays
+  # in sync with the config — if you change methods_long, rerunning
+  # run_forecast() with overwrite = TRUE will update the YAML.
+  # =========================================================================
+  
+  cat("--- Writing metadata ---\n")
+  write_metadata(config, config$hub_path, team_model)
+  cat("\n")
+  
+  # =========================================================================
   # BUILD THE SIMULATION FUNCTION
   #
   # The engine constructs an internal function that takes training data for
@@ -195,7 +341,8 @@ run_forecast <- function(config) {
   # SINGLE-DATE FORECAST FUNCTION
   #
   # Produces a complete hub-formatted forecast for one origin date:
-  #   filter training data → simulate → quantiles → format → validate → write
+  #   set seed -> filter training data -> simulate -> quantiles ->
+  #   format -> validate -> write
   #
   # This closure captures wili_tsibble, config, preprocess_result, etc.
   # from the enclosing run_forecast() scope. It's also attached to the
@@ -203,6 +350,24 @@ run_forecast <- function(config) {
   # =========================================================================
   
   generate_single_forecast <- function(origin_date, write_file = TRUE) {
+    
+    # Overwrite guard: if the CSV already exists and overwrite is FALSE,
+    # skip processing entirely. Applies to both loop and ad-hoc calls.
+    if (write_file) {
+      expected_path <- file.path(output_dir,
+                                 paste0(origin_date, "-", team_model, ".csv"))
+      if (file.exists(expected_path) && !config$overwrite) {
+        cat(sprintf("  %s -- SKIPPED (exists, overwrite = FALSE)\n", origin_date))
+        return(NULL)
+      }
+    }
+    
+    # Per-date deterministic seed. as.integer(Date) = days since 1970-01-01,
+    # so each date gets a unique seed. Rerunning a single date in isolation
+    # produces the same simulations as running it within the full loop.
+    if (!is.null(config$base_seed)) {
+      set.seed(config$base_seed + as.integer(origin_date))
+    }
     
     # Filter training data: use <= because the origin_date Saturday is the
     # last day of the epiweek, so that week's data is available.
@@ -239,7 +404,7 @@ run_forecast <- function(config) {
       warning(origin_date, ": ", na_count, " NA values in simulations")
     }
     
-    # Quantiles → format → validate → write
+    # Quantiles -> format -> validate -> write
     quantile_df <- compute_quantiles_from_sims(sims)
     hub_df      <- format_for_hub(quantile_df, origin_date, team_model)
     validate_forecast_df(hub_df, origin_date)
@@ -256,8 +421,9 @@ run_forecast <- function(config) {
   # STEP 5: MAIN FORECAST LOOP
   #
   # Iterates over all origin dates (or first 5 in dev_mode). Features:
+  #   - Per-date deterministic seeding for reproducibility
   #   - Progress with ETA (based on actual processing time, not wall clock)
-  #   - Skip-if-exists (for resuming interrupted runs)
+  #   - Skip-if-exists via overwrite flag
   #   - Per-date error handling (failures logged, loop continues)
   #   - Post-loop summary and spot-check validation
   # =========================================================================
@@ -273,7 +439,14 @@ run_forecast <- function(config) {
       dates_to_process <- origin_dates
       cat("  PRODUCTION: all", length(dates_to_process), "dates\n")
     }
-    cat("  n_sims =", config$n_sims, "\n\n")
+    cat("  n_sims =", config$n_sims, "\n")
+    cat("  overwrite =", config$overwrite, "\n")
+    if (!is.null(config$base_seed)) {
+      cat("  base_seed =", config$base_seed, "(per-date deterministic)\n")
+    } else {
+      cat("  base_seed = NULL (stochastic)\n")
+    }
+    cat("\n")
     
     if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
     
@@ -291,9 +464,9 @@ run_forecast <- function(config) {
       expected_path <- file.path(output_dir,
                                  paste0(this_date, "-", team_model, ".csv"))
       
-      # Skip existing files (allows resuming interrupted runs)
-      if (file.exists(expected_path)) {
-        cat(sprintf("  [%3d/%d] %s — SKIPPED\n", i, n_total, this_date))
+      # Skip existing files when overwrite is FALSE
+      if (file.exists(expected_path) && !config$overwrite) {
+        cat(sprintf("  [%3d/%d] %s -- SKIPPED\n", i, n_total, this_date))
         n_skipped <- n_skipped + 1
         next
       }
@@ -313,7 +486,7 @@ run_forecast <- function(config) {
       result_df <- tryCatch(
         suppressWarnings(generate_single_forecast(this_date, write_file = TRUE)),
         error = function(e) {
-          cat("    ✗ ERROR:", e$message, "\n")
+          cat("    ERROR:", e$message, "\n")
           NULL
         }
       )
@@ -342,7 +515,7 @@ run_forecast <- function(config) {
     }
     if (n_failed > 0) {
       cat("\n  FAILED:\n")
-      for (d in failed_log) cat("    ✗", d, "\n")
+      for (d in failed_log) cat("    ", d, "\n")
     }
     
     # File count
@@ -363,7 +536,7 @@ run_forecast <- function(config) {
         cat(sprintf("    %s...\n", basename(f)))
         tryCatch(
           validate_forecast_df(df, d),
-          error = function(e) cat("      ✗", e$message, "\n")
+          error = function(e) cat("      ", e$message, "\n")
         )
       }
     }
@@ -404,7 +577,7 @@ run_forecast <- function(config) {
 #' Produce diagnostic plots from a forecast engine result
 #'
 #' Generates three types of plots:
-#'   (a) Fan charts for 5 representative origin dates × 3 locations
+#'   (a) Fan charts for 5 representative origin dates x 3 locations
 #'   (b) Sanity dashboard: horizon-1 median vs actuals + 90% PI width
 #'   (c) Lambda summary (only if transform = "box_cox_guerrero")
 #'
@@ -422,13 +595,11 @@ run_diagnostics <- function(result,
                                              "HHS Region 10"),
                             dashboard_loc = "US National") {
   
-  # patchwork is only needed for diagnostics, not forecasting
   if (!requireNamespace("patchwork", quietly = TRUE)) {
     stop("Package 'patchwork' required for diagnostics: install.packages(\"patchwork\")")
   }
   library(patchwork)
   
-  # Unpack result for readability
   cfg          <- result$config
   team_model   <- result$team_model
   output_dir   <- result$output_dir
@@ -437,7 +608,6 @@ run_diagnostics <- function(result,
   
   cat(sprintf("\n=== Diagnostics for %s ===\n", team_model))
   
-  # Default QA dates span different flu season phases
   if (is.null(qa_dates)) {
     qa_dates <- as.Date(c(
       "2015-11-07",  # Early season
@@ -450,24 +620,16 @@ run_diagnostics <- function(result,
   
   # =========================================================================
   # PLOT (a): FAN CHARTS
-  #
-  # For each QA date, read the CSV and plot fan charts for each location.
-  # What to look for:
-  #   - Red dots (actuals) mostly within the fan
-  #   - Fan widens with horizon (h1 narrower than h4)
-  #   - No negative y values
-  #   - Larger upward spread during peak season (Box-Cox effect)
   # =========================================================================
   
   cat("\n--- Plot (a): Fan charts ---\n")
   
   for (i in seq_along(qa_dates)) {
     d <- qa_dates[i]
-    csv_file <- file.path(output_dir,
-                          paste0(d, "-", team_model, ".csv"))
+    csv_file <- file.path(output_dir, paste0(d, "-", team_model, ".csv"))
     
     if (!file.exists(csv_file)) {
-      cat("  Skipping", as.character(d), "— file not found\n")
+      cat("  Skipping", as.character(d), "-- file not found\n")
       next
     }
     
@@ -483,7 +645,7 @@ run_diagnostics <- function(result,
     
     combined <- patchwork::wrap_plots(plots, ncol = 1) +
       patchwork::plot_annotation(
-        title = paste0(team_model, " — Fan charts for ", d),
+        title = paste0(team_model, " -- Fan charts for ", d),
         subtitle = "Blue = forecast fan (1-99%, 10-90%, 25-75%, median) | Red dots = actuals",
         theme = ggplot2::theme(
           plot.title = ggplot2::element_text(size = 14, face = "bold"))
@@ -493,11 +655,7 @@ run_diagnostics <- function(result,
   }
   
   # =========================================================================
-  # PLOT (b): SANITY DASHBOARD — median vs actuals over time
-  #
-  # Reads all CSVs and extracts horizon-1 data for one location.
-  # Panel 1: median forecast + 90% PI vs observed actuals
-  # Panel 2: 90% PI width over time (should peak during winter)
+  # PLOT (b): SANITY DASHBOARD
   # =========================================================================
   
   cat("\n--- Plot (b): Sanity dashboard ---\n")
@@ -511,7 +669,7 @@ run_diagnostics <- function(result,
   })
   
   if (nrow(dashboard_data) == 0) {
-    cat("  No CSV files found — skipping dashboard\n")
+    cat("  No CSV files found -- skipping dashboard\n")
   } else {
     dash <- dashboard_data |>
       dplyr::filter(output_type_id %in% c(0.05, 0.5, 0.95)) |>
@@ -552,13 +710,12 @@ run_diagnostics <- function(result,
     
     dashboard <- p_median / p_width +
       patchwork::plot_annotation(
-        title = paste0(team_model, " — Sanity Dashboard"),
+        title = paste0(team_model, " -- Sanity Dashboard"),
         theme = ggplot2::theme(
           plot.title = ggplot2::element_text(size = 14, face = "bold"))
       )
     print(dashboard)
     
-    # Numeric summary
     cat(sprintf("  Median forecast range: %.2f to %.2f wILI%%\n",
                 min(dash$q0.5, na.rm = TRUE),
                 max(dash$q0.5, na.rm = TRUE)))
@@ -593,11 +750,10 @@ run_diagnostics <- function(result,
                          hjust = -0.1, size = 3) +
       ggplot2::coord_flip() +
       ggplot2::labs(
-        title = paste0(team_model, " — Guerrero Box-Cox lambdas"),
-        subtitle = paste0("\u03bb \u2248 0 \u2192 log | ",
-                          "\u03bb \u2248 1 \u2192 no transform | ",
-                          "\u03bb < 0 \u2192 stronger stabilization"),
-        x = NULL, y = "Lambda (\u03bb)"
+        title = paste0(team_model, " -- Guerrero Box-Cox lambdas"),
+        subtitle = paste0("lambda ~ 0 -> log | lambda ~ 1 -> no transform | ",
+                          "lambda < 0 -> stronger stabilization"),
+        x = NULL, y = "Lambda"
       ) +
       ggplot2::scale_y_continuous(
         limits = c(min(lambda_df$lambda) - 0.05,
