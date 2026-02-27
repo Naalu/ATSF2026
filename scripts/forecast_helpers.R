@@ -206,17 +206,19 @@ compute_quantiles_from_sims <- function(sims_tsibble,
 #'
 #' @param quantile_df A tibble from compute_quantiles_from_sims().
 #' @param origin_date A single Date (the forecast origin Saturday).
-#' @param team_model Character string (e.g., "KReger-snaive_bc_bs").
+#' @param team_model Character string (e.g., "KReger-snaive_bc_bs"). Required.
 #' @return A tibble with 8 columns in hub order, typically 1,012 rows.
 #'
 #' @examples
-#' # hub_df <- format_for_hub(quantile_df, as.Date("2016-12-03"))
+#' # hub_df <- format_for_hub(quantile_df, as.Date("2016-12-03"), "KReger-snaive_bc_bs")
 ###############################################################################
-format_for_hub <- function(quantile_df, origin_date, team_model = "KReger-snaive_bc_bs") {
+format_for_hub <- function(quantile_df, origin_date, team_model) {
   
   stopifnot(
     "origin_date must be a single Date" =
       inherits(origin_date, "Date") && length(origin_date) == 1,
+    "team_model must be a non-empty character string" =
+      is.character(team_model) && length(team_model) == 1 && nchar(team_model) > 0,
     "quantile_df must have columns: location, target_end_date, output_type_id, value" =
       all(c("location", "target_end_date", "output_type_id", "value") %in%
             names(quantile_df))
