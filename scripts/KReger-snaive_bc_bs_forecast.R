@@ -103,6 +103,19 @@ OUTPUT_DIR   <- file.path(HUB_PATH, "model-output", TEAM_MODEL)
 # Reference: flucast-design-document.md Section 5.3
 N_BOOTSTRAP <- 1000   # <-- Change to 100 for faster test runs
 
+# --- Dev mode flag ---
+# When TRUE, only processes the first 5 origin dates (for quick testing).
+# When FALSE, processes all 139 origin dates (production run).
+# Tip: use DEV_MODE = TRUE with N_BOOTSTRAP = 100 for a fast sanity check
+# (~30 seconds total), then switch both for production.
+DEV_MODE <- FALSE     # <-- Set to TRUE for testing, FALSE for production
+
+# --- Run forecast loop flag ---
+# When TRUE, the main forecast loop (Milestone 5) executes automatically
+# when the script is source()'d. When FALSE, only the setup (Steps 1-3)
+# runs, and you can call generate_single_forecast() manually for testing.
+RUN_FORECAST_LOOP <- TRUE  # <-- Set to TRUE to run the full pipeline
+
 
 # =============================================================================
 # SOURCE SHARED HELPERS
@@ -538,8 +551,221 @@ generate_single_forecast <- function(origin_date,
 
 
 # =============================================================================
-# (MILESTONE 5 will go here: loop over all origin dates)
+# STEP 5: MAIN FORECAST LOOP (Milestone 5)
+#
+# Generates forecasts for ALL origin dates (or just the first 5 in DEV_MODE).
+# This is the production pipeline that creates the 139 CSV files for
+# submission to the FluSight ILI Sandbox Hub.
+#
+# Features:
+#   - Progress reporting with ETA
+#   - Skip logic: resumes interrupted runs (skips existing CSVs)
+#   - Error handling: logs failures, continues to next date
+#   - Summary report at the end
+#
+# Reference: flucast-design-document.md Section 6, Step 5
+#            flucast-design-document.md Milestone 5
 # =============================================================================
+
+if (RUN_FORECAST_LOOP) {
+  
+  cat("\n=== STEP 5: Running forecast loop ===\n")
+  
+  # --- Determine which dates to process ---
+  # In DEV_MODE, only process the first 5 dates for a quick sanity check.
+  # In production mode, process all 139 origin dates.
+  if (DEV_MODE) {
+    dates_to_process <- origin_dates[1:min(5, length(origin_dates))]
+    cat("  DEV_MODE = TRUE: processing first", length(dates_to_process),
+        "dates only\n")
+    cat("  N_BOOTSTRAP =", N_BOOTSTRAP, "\n\n")
+  } else {
+    dates_to_process <- origin_dates
+    cat("  PRODUCTION MODE: processing all", length(dates_to_process),
+        "dates\n")
+    cat("  N_BOOTSTRAP =", N_BOOTSTRAP, "\n\n")
+  }
+  
+  # --- Create output directory if it doesn't exist ---
+  if (!dir.exists(OUTPUT_DIR)) {
+    dir.create(OUTPUT_DIR, recursive = TRUE)
+    cat("  Created output directory:", OUTPUT_DIR, "\n")
+  }
+  
+  # --- Initialize tracking variables ---
+  n_total     <- length(dates_to_process)   # Total dates to process
+  n_success   <- 0                          # Counter: successful forecasts
+  n_skipped   <- 0                          # Counter: skipped (CSV exists)
+  n_failed    <- 0                          # Counter: failed forecasts
+  failed_log  <- character(0)               # Stores "date: error message"
+  loop_start  <- Sys.time()                 # Wall clock start time
+  
+  # --- Main loop ---
+  for (i in seq_along(dates_to_process)) {
+    
+    this_date <- dates_to_process[i]
+    
+    # --- Skip logic ---
+    # If the CSV already exists for this date, skip it. This allows
+    # resuming an interrupted run without regenerating existing files.
+    # To force regeneration, delete the file first.
+    expected_filename <- paste0(this_date, "-", TEAM_MODEL, ".csv")
+    expected_filepath <- file.path(OUTPUT_DIR, expected_filename)
+    
+    if (file.exists(expected_filepath)) {
+      cat(sprintf("  [%3d/%d] %s — SKIPPED (file exists)\n",
+                  i, n_total, this_date))
+      n_skipped <- n_skipped + 1
+      next
+    }
+    
+    # --- Progress reporting ---
+    # Show current date, elapsed time, and estimated time remaining.
+    elapsed <- as.numeric(difftime(Sys.time(), loop_start, units = "secs"))
+    # Only estimate ETA after the first completed forecast
+    dates_done <- n_success + n_failed
+    if (dates_done > 0) {
+      avg_per_date <- elapsed / dates_done
+      remaining    <- (n_total - i) * avg_per_date
+      eta_str      <- sprintf(" | ETA: %.0f min", remaining / 60)
+    } else {
+      eta_str <- ""
+    }
+    
+    cat(sprintf("  [%3d/%d] %s%s\n", i, n_total, this_date, eta_str))
+    
+    # --- Generate forecast with error handling ---
+    # suppressWarnings silences the routine Box-Cox back-transform warnings
+    # from fable (e.g., "1 simulation replaced with NA"). These are harmless
+    # and would otherwise flood the console with 22 warnings × 139 dates.
+    result <- tryCatch(
+      {
+        suppressWarnings(
+          generate_single_forecast(
+            origin_date  = this_date,
+            wili_tsibble = wili_tsibble,
+            lambdas      = lambdas,
+            n_bootstrap  = N_BOOTSTRAP,
+            team_model   = TEAM_MODEL,
+            output_dir   = OUTPUT_DIR,
+            write_file   = TRUE
+          )
+        )
+      },
+      error = function(e) {
+        # Log the error but don't stop the loop
+        msg <- paste0(this_date, ": ", e$message)
+        failed_log <<- c(failed_log, msg)
+        cat("    ✗ ERROR:", e$message, "\n")
+        NULL
+      }
+    )
+    
+    # --- Update counters ---
+    if (!is.null(result)) {
+      n_success <- n_success + 1
+    } else {
+      # Only count as failed if we didn't already log it in tryCatch
+      # (generate_single_forecast returns NULL for data issues too)
+      if (length(failed_log) == 0 ||
+          !grepl(as.character(this_date), tail(failed_log, 1))) {
+        n_failed <- n_failed + 1
+        failed_log <- c(failed_log, paste0(this_date, ": returned NULL"))
+      } else {
+        n_failed <- n_failed + 1
+      }
+    }
+  }
+  
+  # --- Summary report ---
+  loop_end     <- Sys.time()
+  total_elapsed <- as.numeric(difftime(loop_end, loop_start, units = "secs"))
+  
+  cat("\n", strrep("=", 60), "\n")
+  cat("  FORECAST LOOP COMPLETE\n")
+  cat(strrep("=", 60), "\n\n")
+  cat(sprintf("  Total dates:     %d\n", n_total))
+  cat(sprintf("  Successful:      %d\n", n_success))
+  cat(sprintf("  Skipped:         %d (already existed)\n", n_skipped))
+  cat(sprintf("  Failed:          %d\n", n_failed))
+  cat(sprintf("  Total time:      %.1f minutes (%.0f seconds)\n",
+              total_elapsed / 60, total_elapsed))
+  
+  if (n_success > 0) {
+    cat(sprintf("  Avg time/date:   %.1f seconds\n",
+                total_elapsed / (n_success + n_failed)))
+  }
+  
+  # --- Report failures ---
+  if (n_failed > 0) {
+    cat("\n  FAILED DATES:\n")
+    for (msg in failed_log) {
+      cat("    ✗", msg, "\n")
+    }
+  }
+  
+  # --- File count check ---
+  # Verify the number of CSVs in the output directory matches expectations.
+  csv_files <- list.files(OUTPUT_DIR, pattern = "\\.csv$")
+  cat(sprintf("\n  Files in output directory: %d\n", length(csv_files)))
+  cat(sprintf("  Expected (all dates):     %d\n", length(origin_dates)))
+  
+  if (length(csv_files) == length(origin_dates)) {
+    cat("  ✓ File count matches!\n")
+  } else {
+    cat(sprintf("  ⚠ Mismatch: %d files vs %d expected dates\n",
+                length(csv_files), length(origin_dates)))
+  }
+  
+  # =========================================================================
+  # POST-LOOP SPOT CHECKS
+  #
+  # Validate a sample of 5 CSVs spread across the date range:
+  # first, last, and 3 evenly-spaced middle dates.
+  # This catches systematic issues that might only appear in certain seasons.
+  # =========================================================================
+  
+  cat("\n  Running spot-check validation on 5 sample files...\n\n")
+  
+  # Pick 5 representative dates: first, 25th percentile, median, 75th, last
+  sample_indices <- unique(round(
+    quantile(seq_along(origin_dates), probs = c(0, 0.25, 0.5, 0.75, 1))
+  ))
+  sample_dates <- origin_dates[sample_indices]
+  
+  for (j in seq_along(sample_dates)) {
+    spot_date <- sample_dates[j]
+    spot_file <- paste0(spot_date, "-", TEAM_MODEL, ".csv")
+    spot_path <- file.path(OUTPUT_DIR, spot_file)
+    
+    if (file.exists(spot_path)) {
+      # Read it back and run our internal validation
+      spot_df <- readr::read_csv(spot_path, show_col_types = FALSE)
+      cat(sprintf("  Spot-checking %s...\n", spot_file))
+      
+      tryCatch(
+        {
+          validate_forecast_df(spot_df, spot_date, QUANTILE_LEVELS)
+        },
+        error = function(e) {
+          cat("    ✗ VALIDATION FAILED:", e$message, "\n")
+        }
+      )
+    } else {
+      cat(sprintf("  Spot-check: %s not found (skipped)\n", spot_file))
+    }
+  }
+  
+  cat("\n  Spot checks complete.\n")
+  cat("  To run full hubValidations check on a specific file:\n")
+  cat('  validate_submission(hub_path = HUB_PATH,\n')
+  cat('    file_path = "KReger-snaive_bc_bs/YYYY-MM-DD-KReger-snaive_bc_bs.csv")\n')
+  
+} else {
+  cat("\n=== STEP 5: Forecast loop SKIPPED (RUN_FORECAST_LOOP = FALSE) ===\n")
+  cat("  Set RUN_FORECAST_LOOP <- TRUE at the top of the script to run.\n")
+  cat("  Or call generate_single_forecast() manually for individual dates.\n")
+}
 
 
 ###############################################################################

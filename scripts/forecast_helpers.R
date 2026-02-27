@@ -547,7 +547,7 @@ validate_forecast_df <- function(df, origin_date,
   # CHECK 8: Horizon range — should be exactly 1, 2, 3, 4
   # Reference: Section 9.1 — "Horizon range"
   # -------------------------------------------------------------------------
-  actual_horizons <- sort(unique(df$horizon))
+  actual_horizons <- sort(unique(as.integer(df$horizon)))
   check(
     identical(actual_horizons, as.integer(HUB_HORIZONS)),
     paste0("Horizons are {1,2,3,4} (got {", paste(actual_horizons, collapse = ","), "})"),
