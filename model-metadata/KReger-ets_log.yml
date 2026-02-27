@@ -1,0 +1,18 @@
+team_name: "Reger"
+team_abbr: "KReger"
+model_name: "ETS with Log Transform and Bootstrap"
+model_abbr: "ets_log"
+designated_model: true
+model_contributors: [
+  {
+    "name": "Karl Reger",
+    "affiliation": "Northern Arizona University",
+    "email": "kcr28@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: ILI%
+methods: ETS state space model with log variance stabilization and bootstrapped residual prediction intervals via fable generate().
+methods_long: Uses fable's ETS() with automatic error/trend/seasonal component selection (minimizing AICc) to forecast weekly weighted ILI percentages. A log(x + 0.001) transformation stabilizes variance across flu seasons; the small offset prevents log(0) for rare zero-valued summer observations. The model is fit independently per location for each origin date. Prediction intervals are generated via bootstrap resampling of fitted residuals (1000 replicates) using fable::generate(bootstrap = TRUE). Empirical quantiles are extracted at 23 levels (0.01 to 0.99). All forecast values are floored at zero to satisfy the hub's non-negativity constraint.
+ensemble_of_models: false
+ensemble_of_hub_models: false
