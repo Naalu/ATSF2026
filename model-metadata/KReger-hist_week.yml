@@ -1,0 +1,18 @@
+team_name: "Reger"
+team_abbr: "KReger"
+model_name: "Historical Week Climatology"
+model_abbr: "hist_week"
+designated_model: false
+model_contributors: [
+  {
+    "name": "Karl Reger",
+    "affiliation": "Northern Arizona University",
+    "email": "kcr28@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: "ILI%"
+methods: "Climatological baseline: resamples historical observations from the same week-of-year to produce forecast distributions."
+methods_long: "A non-parametric climatological baseline that uses no statistical model. For each forecast horizon, the target week-of-year is identified and 1000 values are resampled with replacement from all historical observations of that same ISO week across available years. This produces simulation paths reflecting the historical distribution of ILI activity for a given calendar week. Empirical quantiles are extracted at 23 levels (0.01 to 0.99). Forecast values are floored at zero. Implemented in pure tidyverse with no fable dependency, serving as a reference example of a custom (non-fable) model."
+ensemble_of_models: false
+ensemble_of_hub_models: false

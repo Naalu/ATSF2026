@@ -159,9 +159,9 @@ write_metadata <- function(config, hub_path, team_model) {
     sprintf('designated_model: %s', fmt_bool(meta$designated_model)),
     paste0('model_contributors: ', contrib_yaml),
     sprintf('license: "%s"', meta$license),
-    sprintf('data_inputs: %s', meta$data_inputs),
-    sprintf('methods: %s', meta$methods),
-    sprintf('methods_long: %s', meta$methods_long),
+    sprintf('data_inputs: "%s"', meta$data_inputs),
+    sprintf('methods: "%s"', gsub('"', '\\\\"', meta$methods)),
+    sprintf('methods_long: "%s"', gsub('"', '\\\\"', meta$methods_long)),
     sprintf('ensemble_of_models: %s', fmt_bool(meta$ensemble_of_models)),
     sprintf('ensemble_of_hub_models: %s', fmt_bool(meta$ensemble_of_hub_models))
   )
@@ -565,9 +565,10 @@ run_forecast <- function(config) {
     forecast     = generate_single_forecast
   )
   
-  cat(sprintf("=== Engine complete: %s ===\n", team_model))
-  cat("  Use result$forecast(as.Date(\"YYYY-MM-DD\")) for ad-hoc forecasts\n")
-  cat("  Use run_diagnostics(result) for visual QA\n")
+  cat(sprintf("\n=== Engine complete: %s ===\n", team_model))
+  cat("  res <- run_forecast(config)               # (already done)\n")
+  cat("  res$forecast(as.Date(\"YYYY-MM-DD\"))        # ad-hoc forecast\n")
+  cat("  run_diagnostics(res)                       # visual QA\n")
   
   invisible(result)
 }
@@ -646,10 +647,11 @@ run_diagnostics <- function(result,
     
     combined <- patchwork::wrap_plots(plots, ncol = 1) +
       patchwork::plot_annotation(
-        title = paste0(model_name, " (", team_model, ") -- ", d),
-        subtitle = "Blue = forecast fan (1-99%, 10-90%, 25-75%, median) | Red dots = actuals",
+        title = team_model,
+        subtitle = paste0(model_name, "  |  Origin: ", d),
         theme = ggplot2::theme(
-          plot.title = ggplot2::element_text(size = 14, face = "bold"))
+          plot.title = ggplot2::element_text(size = 14, face = "bold"),
+          plot.subtitle = ggplot2::element_text(size = 11))
       )
     print(combined)
     cat("  Plotted:", as.character(d), "\n")
@@ -693,7 +695,7 @@ run_diagnostics <- function(result,
       ggplot2::geom_line(ggplot2::aes(y = q0.5),
                          color = "steelblue", linewidth = 0.6) +
       ggplot2::labs(
-        title = paste0(model_name, " -- Horizon-1 median vs actuals: ", dashboard_loc),
+        title = paste0("Horizon-1 median vs actuals: ", dashboard_loc),
         subtitle = "Blue = median | Black = actual | Shaded = 90% PI",
         x = "Date", y = "wILI %"
       ) +
@@ -704,16 +706,18 @@ run_diagnostics <- function(result,
       ggplot2::geom_line(color = "darkorange", linewidth = 0.6) +
       ggplot2::labs(
         title = "90% prediction interval width (horizon 1)",
-        subtitle = "Should be wider during peak flu season (Jan-Feb)",
+        subtitle = "Wider during peak flu season (Jan-Feb) is expected",
         x = "Date", y = "Interval width"
       ) +
       ggplot2::theme_minimal()
     
     dashboard <- p_median / p_width +
       patchwork::plot_annotation(
-        title = paste0(model_name, " (", team_model, ") -- Sanity Dashboard"),
+        title = team_model,
+        subtitle = model_name,
         theme = ggplot2::theme(
-          plot.title = ggplot2::element_text(size = 14, face = "bold"))
+          plot.title = ggplot2::element_text(size = 14, face = "bold"),
+          plot.subtitle = ggplot2::element_text(size = 11))
       )
     print(dashboard)
     
@@ -758,7 +762,7 @@ run_diagnostics <- function(result,
                          hjust = -0.1, size = 3) +
       ggplot2::coord_flip() +
       ggplot2::labs(
-        title = paste0(model_name, " (", team_model, ") -- ", transform_label),
+        title = paste0(team_model, " -- ", transform_label),
         subtitle = paste0("lambda ~ 0 -> log | lambda ~ 1 -> no transform | ",
                           "lambda < 0 -> stronger stabilization"),
         x = NULL, y = "Lambda"
