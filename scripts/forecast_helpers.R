@@ -7,6 +7,8 @@
 #   multiple models (SNAIVE, ETS, ARIMA, etc.) — the model-specific logic
 #   lives in separate driver scripts that source() this file.
 #
+# DESIGN DOC REFERENCE:
+#   flucast-design-document.md, Section 7.4 (Extensibility Architecture)
 #
 # FUNCTIONS PROVIDED:
 #   1. load_and_prepare_tsibble()    — Load CSV, create tsibble
@@ -46,6 +48,7 @@
 # get_step_ahead_model_output.R writes "origin_date".
 #
 # If a future hub uses a different name, change ONLY this constant.
+# Reference: flucast-design-document.md Section 11, OQ#1
 # ---------------------------------------------------------------------------
 DATE_COL <- "origin_date"
 
@@ -57,14 +60,18 @@ DATE_COL <- "origin_date"
 # The seq() in the middle generates 0.05, 0.10, ..., 0.95 (19 values),
 # and we prepend 0.01, 0.025 and append 0.975, 0.99 for the tails.
 # Total: 2 + 19 + 2 = 23 levels.
+#
+# Reference: flucast-design-document.md Section 4.2
 # ---------------------------------------------------------------------------
-QUANTILE_LEVELS <- c(0.01, 0.025, seq(0.05, 0.95, by = 0.05), 0.975, 0.99)
+QUANTILE_LEVELS <- round(c(0.01, 0.025, seq(0.05, 0.95, by = 0.05), 0.975, 0.99), 3)
 
 # ---------------------------------------------------------------------------
 # 11 REQUIRED LOCATIONS
 #
 # The hub covers the US national level plus 10 HHS Regions.
 # These are the string values that must appear in the "location" column.
+#
+# Reference: hub-config/tasks.json — location.optional
 # ---------------------------------------------------------------------------
 HUB_LOCATIONS <- c(
   "US National",
@@ -73,17 +80,20 @@ HUB_LOCATIONS <- c(
 
 # ---------------------------------------------------------------------------
 # HORIZONS: 1 through 4 weeks ahead
+# Reference: hub-config/tasks.json — horizon.optional
 # ---------------------------------------------------------------------------
 HUB_HORIZONS <- 1:4
 
 # ---------------------------------------------------------------------------
 # EXPECTED ROW COUNT per CSV file
 # 11 locations × 4 horizons × 23 quantile levels = 1,012 rows
+# Reference: flucast-design-document.md Section 4.3
 # ---------------------------------------------------------------------------
 EXPECTED_ROWS <- length(HUB_LOCATIONS) * length(HUB_HORIZONS) * length(QUANTILE_LEVELS)
 
 # ---------------------------------------------------------------------------
 # EXPECTED COLUMN NAMES (in the order the hub examples use)
+# Reference: model-output/delphi-epicast/2015-10-31-delphi-epicast.csv
 # ---------------------------------------------------------------------------
 EXPECTED_COLS <- c(
   DATE_COL, "location", "target", "horizon",
@@ -244,6 +254,7 @@ get_origin_dates <- function(tasks_json_path) {
 #' requested quantile levels for each location × target_end_date group.
 #' Floors all values at zero to satisfy the hub's non-negativity constraint.
 #'
+#' This implements Steps 5d–5e from flucast-design-document.md Section 6.
 #'
 #' @param sims_tsibble A tsibble produced by fable::generate(), containing
 #'   at minimum columns: location, target_end_date, .sim
@@ -282,7 +293,10 @@ compute_quantiles_from_sims <- function(sims_tsibble,
     dplyr::group_by(location, target_end_date) |>
     dplyr::reframe(
       # output_type_id: the quantile probability (e.g., 0.01, 0.025, ...)
-      output_type_id = quantile_levels,
+      # round() fixes IEEE 754 floating-point drift from seq(), e.g.,
+      # seq(0.05, 0.95, 0.05) produces 0.15000000000000002 instead of 0.15.
+      # 3 decimal places covers our finest granularity (0.025, 0.975).
+      output_type_id = round(quantile_levels, 3),
       # value: the empirical quantile of the simulated values at each level
       value = quantile(.sim, probs = quantile_levels, na.rm = TRUE)
     ) |>
@@ -315,6 +329,7 @@ compute_quantiles_from_sims <- function(sims_tsibble,
 #' Computes: horizon = (target_end_date - origin_date) / 7
 #' Enforces: value >= 0, correct column names and types.
 #'
+#' This implements Step 5e from flucast-design-document.md Section 6.
 #'
 #' @param quantile_df A tibble with columns: location, target_end_date,
 #'   output_type_id, value. Typically from compute_quantiles_from_sims().
@@ -424,6 +439,7 @@ validate_forecast_df <- function(df, origin_date,
   
   # -------------------------------------------------------------------------
   # CHECK 1: Column names — exactly the 8 expected, no extras
+  # Reference: Section 9.1 — "Column names" and "No extra columns"
   # -------------------------------------------------------------------------
   check(
     identical(sort(names(df)), sort(EXPECTED_COLS)),
@@ -441,6 +457,7 @@ validate_forecast_df <- function(df, origin_date,
   
   # -------------------------------------------------------------------------
   # CHECK 2: Row count — should be exactly 1,012
+  # Reference: Section 9.1 — "Row count"
   # -------------------------------------------------------------------------
   check(
     nrow(df) == EXPECTED_ROWS,
@@ -449,6 +466,7 @@ validate_forecast_df <- function(df, origin_date,
   
   # -------------------------------------------------------------------------
   # CHECK 3: Non-negative values — all value >= 0
+  # Reference: Section 9.1 — "Non-negative values"
   # -------------------------------------------------------------------------
   neg_count <- sum(df$value < 0, na.rm = TRUE)
   check(
@@ -469,6 +487,7 @@ validate_forecast_df <- function(df, origin_date,
   
   # -------------------------------------------------------------------------
   # CHECK 5: Quantile count per location-horizon group — should be 23
+  # Reference: Section 9.1 — "Quantile count per group"
   # -------------------------------------------------------------------------
   q_counts <- df |>
     dplyr::group_by(location, horizon) |>
@@ -485,6 +504,7 @@ validate_forecast_df <- function(df, origin_date,
   
   # -------------------------------------------------------------------------
   # CHECK 6: Quantile levels match the expected set exactly
+  # Reference: Section 9.1 — "Quantile levels match"
   # -------------------------------------------------------------------------
   actual_levels <- sort(unique(df$output_type_id))
   extra <- setdiff(actual_levels, quantile_levels)
@@ -501,6 +521,7 @@ validate_forecast_df <- function(df, origin_date,
   # -------------------------------------------------------------------------
   # CHECK 7: Quantile monotonicity — within each location-horizon group,
   # values must be non-decreasing as output_type_id increases.
+  # Reference: Section 9.1 — "Quantile monotonicity"
   # -------------------------------------------------------------------------
   mono_check <- df |>
     dplyr::group_by(location, horizon) |>
@@ -524,6 +545,7 @@ validate_forecast_df <- function(df, origin_date,
   
   # -------------------------------------------------------------------------
   # CHECK 8: Horizon range — should be exactly 1, 2, 3, 4
+  # Reference: Section 9.1 — "Horizon range"
   # -------------------------------------------------------------------------
   actual_horizons <- sort(unique(df$horizon))
   check(
@@ -534,6 +556,7 @@ validate_forecast_df <- function(df, origin_date,
   
   # -------------------------------------------------------------------------
   # CHECK 9: Date arithmetic — target_end_date == origin_date + horizon * 7
+  # Reference: Section 9.1 — "Date arithmetic"
   # -------------------------------------------------------------------------
   date_check <- df |>
     dplyr::mutate(
@@ -552,6 +575,7 @@ validate_forecast_df <- function(df, origin_date,
   
   # -------------------------------------------------------------------------
   # CHECK 10: origin_date matches the expected date parameter
+  # Reference: Section 9.1 — "reference_date matches filename"
   # -------------------------------------------------------------------------
   unique_dates <- unique(df[[DATE_COL]])
   check(
@@ -562,6 +586,7 @@ validate_forecast_df <- function(df, origin_date,
   
   # -------------------------------------------------------------------------
   # CHECK 11: origin_date is a Saturday
+  # Reference: Section 9.1 — "reference_date is Saturday"
   # -------------------------------------------------------------------------
   check(
     lubridate::wday(origin_date) == 7,
@@ -571,6 +596,7 @@ validate_forecast_df <- function(df, origin_date,
   
   # -------------------------------------------------------------------------
   # CHECK 12: Location set — must be exactly the 11 expected locations
+  # Reference: Section 9.1 — "Location set"
   # -------------------------------------------------------------------------
   actual_locs <- sort(unique(df$location))
   check(
@@ -584,6 +610,7 @@ validate_forecast_df <- function(df, origin_date,
   
   # -------------------------------------------------------------------------
   # CHECK 13: target value — must be "ili perc"
+  # Reference: Section 9.1 — "target value"
   # -------------------------------------------------------------------------
   check(
     identical(unique(df$target), "ili perc"),

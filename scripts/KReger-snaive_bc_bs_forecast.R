@@ -46,6 +46,12 @@
 #   - 139 CSV files in model-output/KReger-snaive_bc_bs/
 #   - Console progress messages
 #
+# DESIGN DOC REFERENCES:
+#   - Section 5: Baseline Modeling Approach (model spec, lambda strategy)
+#   - Section 6: End-to-End Workflow (steps 0-5)
+#   - Section 7.4: Extensibility Architecture
+#   - Section 10: Milestones 2-5
+#
 ###############################################################################
 
 
@@ -72,6 +78,7 @@ library(tidyverse)
 
 # --- Team and model identifiers ---
 # These must match the directory name and filename convention exactly.
+# Reference: flucast-design-document.md Section 4.1
 TEAM_MODEL <- "KReger-snaive_bc_bs"
 
 # --- Path to the local ATSF2026 repo clone ---
@@ -80,6 +87,7 @@ TEAM_MODEL <- "KReger-snaive_bc_bs"
 HUB_PATH <- "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026"
 
 # --- Derived paths (constructed from HUB_PATH and TEAM_MODEL) ---
+# These follow the directory layout in design doc Section 7.3.
 DATA_PATH    <- file.path(HUB_PATH, "target-data", "time-series.csv")
 TASKS_PATH   <- file.path(HUB_PATH, "hub-config", "tasks.json")
 OUTPUT_DIR   <- file.path(HUB_PATH, "model-output", TEAM_MODEL)
@@ -91,6 +99,8 @@ OUTPUT_DIR   <- file.path(HUB_PATH, "model-output", TEAM_MODEL)
 #
 # For DEVELOPMENT/TESTING: change to 100 for ~10x faster runs.
 # For PRODUCTION: use 1000 (the value below).
+#
+# Reference: flucast-design-document.md Section 5.3
 N_BOOTSTRAP <- 1000   # <-- Change to 100 for faster test runs
 
 
@@ -104,6 +114,8 @@ N_BOOTSTRAP <- 1000   # <-- Change to 100 for faster test runs
 #
 # It also provides the shared constants:
 #   DATE_COL, QUANTILE_LEVELS, HUB_LOCATIONS, HUB_HORIZONS, EXPECTED_ROWS
+#
+# Reference: flucast-design-document.md Section 7.4
 # =============================================================================
 
 source(file.path(HUB_PATH, "scripts", "forecast_helpers.R"))
@@ -115,6 +127,8 @@ source(file.path(HUB_PATH, "scripts", "forecast_helpers.R"))
 # Read the wILI target time series and convert to a tsibble.
 # This is the ground truth data that models are trained on.
 #
+# Reference: flucast-design-document.md Section 6, Steps 1-2
+#            w5d1-solutions.qmd Exercise 1
 # =============================================================================
 
 cat("=== STEP 1: Loading target data ===\n")
@@ -134,6 +148,8 @@ cat(paste0("  Locations: ",
 #
 # Parse the full list of origin dates from hub-config/tasks.json.
 # These are the 139 Saturdays we need to generate forecasts for.
+#
+# Reference: flucast-design-document.md Section 6, Step 4
 # =============================================================================
 
 cat("=== STEP 2: Loading origin dates ===\n")
@@ -168,7 +184,7 @@ cat("\n")
 #     extra feature computations, with minimal benefit for a baseline model.
 #   - Stability: using data before the first origin date means the lambda
 #     is fixed and reproducible regardless of which origin date is being
-#     processed.
+#     processed. This is the strategy recommended in design doc Section 5.2.
 #
 # HOW IT WORKS:
 #   1. Filter the tsibble to keep only data BEFORE the first origin date.
@@ -176,6 +192,10 @@ cat("\n")
 #   2. For each location, compute features(observation, guerrero) which
 #      returns a tibble with one row per location and a lambda_guerrero column.
 #   3. Store as a named vector: names = location names, values = lambda.
+#
+# Reference: flucast-design-document.md Section 5.2
+#            w3d2-solutions.qmd — features(GDP, features = guerrero)
+#            04_transformations.pdf — "Transformations can stabilize variance"
 # =============================================================================
 
 cat("=== STEP 3: Estimating Box-Cox lambdas via guerrero ===\n")
@@ -240,7 +260,7 @@ if (length(lambdas) != length(HUB_LOCATIONS)) {
 #
 # If any lambda is extreme, we warn but don't fail — the user can
 # investigate and decide whether to use log1p() as a fallback for
-# that location.
+# that location (as suggested in design doc Section 5.2).
 extreme_lambdas <- lambdas[abs(lambdas) > 2]
 if (length(extreme_lambdas) > 0) {
   warning(
@@ -268,8 +288,254 @@ cat(paste0("  Range: [", round(min(lambdas), 4), ", ",
 
 
 # =============================================================================
-# (MILESTONE 3 will go here: generate_single_forecast() function)
+# STEP 4: SINGLE-DATE FORECAST FUNCTION (Milestone 3)
+#
+# This is the core function that produces a complete hub-formatted forecast
+# for ONE origin date across all 11 locations. It implements Steps 5a–5f
+# from the design doc (Section 6).
+#
+# The function is designed to be called in a loop over all 139 origin dates
+# (Milestone 5), but can also be called standalone for testing.
+#
+# Reference: flucast-design-document.md Section 6, Steps 5a–5f
+#            flucast-implementation-prompt.md — Milestone 3 spec
 # =============================================================================
+
+#' Generate a complete hub-formatted forecast for a single origin date
+#'
+#' Runs the full pipeline: filter training data → fit SNAIVE with Box-Cox →
+#' generate bootstrap paths → compute quantiles → format for hub → validate →
+#' optionally write CSV. Returns the formatted dataframe.
+#'
+#' @param origin_date A single Date — the Saturday to forecast from.
+#' @param wili_tsibble The full wILI tsibble (all dates, all locations).
+#' @param lambdas A named numeric vector: names = location strings,
+#'   values = guerrero lambda for each location.
+#' @param quantile_levels Numeric vector of quantile probabilities.
+#'   Defaults to the hub's 23 required levels.
+#' @param n_bootstrap Integer. Number of bootstrap replicates for generate().
+#'   Use 100 for dev/testing, 1000 for production.
+#' @param team_model Character string (e.g., "KReger-snaive_bc_bs").
+#' @param output_dir Character string. Path to write the CSV file.
+#' @param write_file Logical. If TRUE, writes the CSV. If FALSE, returns
+#'   the dataframe without writing (useful for inspection).
+#'
+#' @return A tibble with 1,012 rows × 8 columns in hub format, or NULL
+#'   if the forecast could not be generated (insufficient data, model error).
+generate_single_forecast <- function(origin_date,
+                                     wili_tsibble,
+                                     lambdas,
+                                     quantile_levels = QUANTILE_LEVELS,
+                                     n_bootstrap = N_BOOTSTRAP,
+                                     team_model = TEAM_MODEL,
+                                     output_dir = OUTPUT_DIR,
+                                     write_file = TRUE) {
+  
+  # =========================================================================
+  # STEP 5a: FILTER TRAINING DATA
+  #
+  # Keep only data where target_end_date <= origin_date. This simulates
+  # standing on the origin Saturday and looking backward — we can see
+  # all data up through and including that date, but nothing after.
+  #
+  # The <= (not <) is deliberate: the origin_date Saturday is the last
+  # day of the reporting epiweek, so data for that week is available
+  # when we make the forecast.
+  #
+  # Pattern from: w5d1-solutions.qmd Exercise 2
+  #   wili_tsibble |> filter(target_end_date < '2016-12-05')
+  # =========================================================================
+  
+  train_data <- wili_tsibble |>
+    filter(target_end_date <= origin_date)
+  
+  # --- Check for minimum data requirement ---
+  # SNAIVE with lag('year') needs at least 52 weeks (1 full year) of history
+  # to produce the seasonal naive forecast. If any location has fewer than
+  # 52 weeks, the model will error.
+  min_weeks <- train_data |>
+    as_tibble() |>
+    group_by(location) |>
+    summarise(n = n(), .groups = "drop") |>
+    pull(n) |>
+    min()
+  
+  if (min_weeks < 52) {
+    warning(
+      "Skipping ", origin_date, ": only ", min_weeks,
+      " weeks of training data (need >= 52 for SNAIVE yearly lag)"
+    )
+    return(NULL)
+  }
+  
+  # =========================================================================
+  # STEP 5b + 5c: FIT MODEL AND GENERATE BOOTSTRAP PATHS (per location)
+  #
+  # WHY A PER-LOCATION LOOP?
+  #   We originally tried passing lambda as a column in the tsibble and
+  #   fitting all 11 locations in a single model() call. This failed:
+  #   fable's box_cox() stores the lambda value during model(), but
+  #   generate() creates new future rows that don't carry the lambda
+  #   column. Result: the back-transformation silently fails and we get
+  #   forecasts stuck in Box-Cox space (~0.5) instead of real ILI space
+  #   (~2-4%). See the Milestone 3 bug fix discussion.
+  #
+  #   The fix: loop over locations with purrr::map(), passing each
+  #   location's lambda as a SCALAR to box_cox(). Fable correctly stores
+  #   scalar lambdas in the model object and back-transforms properly.
+  #
+  # WHAT THE MODEL DOES:
+  #   - box_cox(observation, loc_lambda): applies the Box-Cox variance-
+  #     stabilizing transform before fitting. When loc_lambda is a scalar,
+  #     fable stores it in the model and automatically back-transforms
+  #     when generating forecasts.
+  #   - SNAIVE(... ~ lag('year')): the seasonal naive model uses the value
+  #     from the same week one year ago (52 weeks back) as the point
+  #     forecast. This captures the seasonal pattern of flu — "next week's
+  #     ILI will look like the same week last year."
+  #   - generate(bootstrap = TRUE): resamples from fitted residuals to
+  #     create simulated future paths. Each replicate is one possible
+  #     future trajectory of wILI over the next 4 weeks.
+  #
+  # Reference: flucast-design-document.md Section 5.1
+  #            w5d1-solutions.qmd Exercise 5
+  #            06_forecast_submissions.pdf — "Getting quantile forecasts"
+  # =========================================================================
+  
+  # Get the unique locations in the training data
+  locations <- unique(train_data$location)
+  
+  # Loop over each location: fit model with scalar lambda, generate sims.
+  # purrr::map() returns a list of tibbles; bind_rows() combines them.
+  sims <- tryCatch(
+    {
+      purrr::map(locations, function(loc) {
+        
+        # --- Get this location's scalar lambda ---
+        # lambdas is a named vector: lambdas["US National"] returns a scalar
+        loc_lambda <- lambdas[loc]
+        
+        # --- Filter training data to this location only ---
+        loc_train <- train_data |>
+          filter(location == loc)
+        
+        # --- Fit the model ---
+        # Because loc_lambda is a scalar, fable stores it in the model
+        # object and correctly back-transforms during generate().
+        loc_fit <- loc_train |>
+          model(
+            snaive_bc_bs = SNAIVE(
+              box_cox(observation, loc_lambda) ~ lag("year")
+            )
+          )
+        
+        # --- Generate bootstrap paths ---
+        # h = 4: forecast 4 weeks ahead (horizons 1-4)
+        # times = n_bootstrap: number of simulated paths (100 dev, 1000 prod)
+        # bootstrap = TRUE: resample from residuals (not parametric)
+        #
+        # Output: a tsibble with columns:
+        #   location, target, .model, target_end_date, .rep, .sim
+        # Rows: 4 horizons × n_bootstrap replicates
+        loc_sims <- loc_fit |>
+          generate(h = 4, times = n_bootstrap, bootstrap = TRUE)
+        
+        # Return as a plain tibble for easier binding across locations
+        as_tibble(loc_sims)
+        
+      }) |>
+        # Combine all 11 location results into one dataframe
+        bind_rows()
+    },
+    error = function(e) {
+      warning("Fit/generate failed for ", origin_date, ": ", e$message)
+      NULL
+    }
+  )
+  
+  # If fitting or generation failed, bail out gracefully
+  if (is.null(sims)) return(NULL)
+  
+  # --- Check for NA simulations ---
+  # If there are gaps in the time series or numerical issues, some .sim
+  # values might be NA. This would produce NA quantiles downstream.
+  # Also check for negative .sim values — the Box-Cox back-transform can
+  # occasionally produce negatives when bootstrap paths go extreme.
+  # Reference: flucast-design-document.md Section 9.4 — edge case checks
+  na_count <- sum(is.na(sims$.sim))
+  if (na_count > 0) {
+    warning(
+      origin_date, ": ", na_count, " NA values in bootstrap simulations. ",
+      "These will be excluded from quantile computation."
+    )
+  }
+  
+  # =========================================================================
+  # STEP 5d: COMPUTE QUANTILES
+  #
+  # Group the simulated paths by location and target_end_date, then compute
+  # the empirical quantile at each of the 23 required levels. This converts
+  # n_bootstrap simulated values into a probabilistic forecast described
+  # by its quantile function.
+  #
+  # Uses compute_quantiles_from_sims() from forecast_helpers.R, which also
+  # applies pmax(value, 0) to enforce non-negativity.
+  #
+  # Reference: flucast-design-document.md Section 5.4, steps 3-4
+  # =========================================================================
+  
+  quantile_df <- compute_quantiles_from_sims(sims, quantile_levels)
+  
+  # =========================================================================
+  # STEP 5e: FORMAT FOR HUB
+  #
+  # Add the remaining hub columns (origin_date, target, horizon, output_type),
+  # enforce constraints, and select exactly the 8 required columns.
+  #
+  # Uses format_for_hub() from forecast_helpers.R.
+  #
+  # Reference: flucast-design-document.md Section 4.2
+  # =========================================================================
+  
+  hub_df <- format_for_hub(quantile_df, origin_date, team_model)
+  
+  # =========================================================================
+  # STEP 5e (continued): VALIDATE
+  #
+  # Run all 14+ programmatic quality checks BEFORE writing the file.
+  # If any check fails, validate_forecast_df() will stop() with a
+  # descriptive error message.
+  #
+  # Uses validate_forecast_df() from forecast_helpers.R.
+  #
+  # Reference: flucast-design-document.md Section 9.1
+  # =========================================================================
+  
+  validate_forecast_df(hub_df, origin_date, quantile_levels)
+  
+  # =========================================================================
+  # STEP 5f: WRITE CSV
+  #
+  # Write the formatted dataframe to a CSV with the filename pattern:
+  #   YYYY-MM-DD-KReger-snaive_bc_bs.csv
+  #
+  # Only writes if write_file = TRUE (default). Setting write_file = FALSE
+  # is useful for testing — you get the dataframe back without creating files.
+  #
+  # Uses write_hub_csv() from forecast_helpers.R.
+  #
+  # Reference: model-output/README.md — filename format
+  # =========================================================================
+  
+  if (write_file) {
+    filepath <- write_hub_csv(hub_df, origin_date, output_dir, team_model)
+    cat(paste0("  Wrote: ", basename(filepath), "\n"))
+  }
+  
+  # Return the formatted dataframe (useful for inspection and plotting)
+  return(hub_df)
+}
+
 
 # =============================================================================
 # (MILESTONE 5 will go here: loop over all origin dates)
@@ -277,72 +543,60 @@ cat(paste0("  Range: [", round(min(lambdas), 4), ", ",
 
 
 ###############################################################################
-# VERIFICATION SECTION
+# MILESTONE 3 — TEST SECTION
 #
-# Uncomment and run these blocks interactively to verify the setup is correct.
-# These are NOT part of the production pipeline — they're diagnostic tools.
+# Run these commands INTERACTIVELY after source()-ing the script to verify
+# the single-date pipeline works end-to-end.
+#
+# Test date: 2016-12-03 — this matches the origin date used in the
+# w5d1-solutions.qmd exercises, so it's a known-good time period with
+# plenty of training data and we're in the middle of flu season (good
+# for seeing non-trivial forecasts).
 ###############################################################################
 
-# --- VERIFY 1: Print lambda summary ---
-# Uncomment these lines to inspect lambdas after running the script:
+# --- TEST: Generate a single forecast ---
+# Uncomment the block below and run it in your console.
+# Use n_bootstrap = 100 for a fast test (~10 seconds), not the full 1000.
 #
-# cat("\nLambda summary:\n")
-# print(tibble(location = names(lambdas), lambda = round(lambdas, 4)))
-
-# --- VERIFY 2: Visual check — raw vs Box-Cox-transformed series ---
-# This plot compares the raw observation series with the Box-Cox-transformed
-# version for one location. After transformation, the seasonal peaks and
-# troughs should have more uniform amplitude (stabilized variance).
+# cat("\n=== MILESTONE 3 TEST: Single-date forecast ===\n")
+# test_result <- generate_single_forecast(
+#   origin_date   = as.Date("2016-12-03"),
+#   wili_tsibble  = wili_tsibble,
+#   lambdas       = lambdas,
+#   n_bootstrap   = 100,        # Fast test; use 1000 for production
+#   write_file    = TRUE         # Writes the CSV so we can validate it
+# )
 #
-# Uncomment and run:
+# # --- Check dimensions ---
+# cat("\nResult dimensions:", nrow(test_result), "rows x",
+#     ncol(test_result), "cols\n")
+# cat("Expected: 1012 rows x 8 cols\n\n")
 #
-# library(cowplot)
+# # --- Inspect the data ---
+# cat("First rows:\n")
+# print(head(test_result, 6))
+# cat("\nLast rows:\n")
+# print(tail(test_result, 6))
 #
-# # Pick a location to inspect (US National shows the clearest seasonal pattern)
-# check_loc <- "US National"
-# check_lambda <- lambdas[check_loc]
+# # --- Hub validation using hubValidations ---
+# # This is the OFFICIAL validator that GitHub Actions will run on your PR.
+# # It checks everything: filename format, column names, value ranges, etc.
+# library(hubValidations)
+# hub_validation_result <- validate_submission(
+#   hub_path  = HUB_PATH,
+#   file_path = "KReger-snaive_bc_bs/2016-12-03-KReger-snaive_bc_bs.csv"
+# )
+# print(hub_validation_result)
 #
-# # Raw series: note how winter peaks vary in height across years
-# p_raw <- pre_forecast_data |>
-#   filter(location == check_loc) |>
-#   autoplot(observation) +
-#   labs(title = paste0(check_loc, " — Raw"),
-#        subtitle = "Note: peak heights vary across seasons",
-#        y = "wILI %") +
-#   theme_minimal()
+# # --- Spot-check plot ---
+# # This fan chart shows the forecast overlaid on the historical series.
+# # For SNAIVE, the median (blue line) should be very close to the
+# # same-week-last-year values. The fan should widen slightly with horizon.
+# p <- plot_quantile_fan(test_result, wili_tsibble,
+#                        as.Date("2016-12-03"), "US National")
+# print(p)
 #
-# # Box-Cox transformed: peaks should be more uniform
-# p_bc <- pre_forecast_data |>
-#   filter(location == check_loc) |>
-#   autoplot(box_cox(observation, check_lambda)) +
-#   labs(title = paste0(check_loc, " — Box-Cox (λ=", round(check_lambda, 3), ")"),
-#        subtitle = "Peak heights should be more uniform",
-#        y = "Transformed wILI") +
-#   theme_minimal()
-#
-# # Display side by side
-# plot_grid(p_raw, p_bc, ncol = 1)
-
-# --- VERIFY 3: Confirm fable can use box_cox with our lambda ---
-# This is a quick smoke test: fit SNAIVE with Box-Cox on one location
-# for a single origin date, just to confirm the model() call works.
-#
-# Uncomment and run:
-#
-# test_data <- wili_tsibble |>
-#   filter(location == "US National", target_end_date < as.Date("2016-12-03"))
-# test_lambda <- lambdas["US National"]
-#
-# test_fit <- test_data |>
-#   model(snaive_bc = SNAIVE(box_cox(observation, test_lambda) ~ lag("year")))
-#
-# cat("Model fit successful. Summary:\n")
-# print(test_fit)
-#
-# # Generate a small number of bootstrap paths to verify generate() works
-# test_sims <- test_fit |>
-#   generate(h = 4, times = 10, bootstrap = TRUE)
-#
-# cat("\nGenerate output dimensions: ", dim(test_sims), "\n")
-# cat("Columns: ", paste(names(test_sims), collapse = ", "), "\n")
-# print(head(test_sims))
+# # --- Clean up the test file ---
+# # Remove it so it doesn't get included in the final submission by accident.
+# # (Or leave it if you want to inspect it.)
+# # file.remove(file.path(OUTPUT_DIR, "2016-12-03-KReger-snaive_bc_bs.csv"))
