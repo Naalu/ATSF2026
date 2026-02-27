@@ -480,7 +480,7 @@ run_forecast <- function(config) {
       } else ""
       cat(sprintf("  [%3d/%d] %s%s\n", i, n_total, this_date, eta_str))
       
-      # Generate forecast. suppressWarnings silences routine fable Box-Cox
+      # Generate forecast. suppressWarnings silences routine fable transform
       # back-transform messages that would flood the console.
       date_start <- Sys.time()
       result_df <- tryCatch(
@@ -579,7 +579,7 @@ run_forecast <- function(config) {
 #' Generates three types of plots:
 #'   (a) Fan charts for 5 representative origin dates x 3 locations
 #'   (b) Sanity dashboard: horizon-1 median vs actuals + 90% PI width
-#'   (c) Lambda summary (only if transform = "box_cox_guerrero")
+#'   (c) Transform parameter summary (only if preprocessing produced parameters)
 #'
 #' @param result The list returned by run_forecast().
 #' @param qa_dates Optional Date vector of origin dates to plot fan charts for.
@@ -602,11 +602,12 @@ run_diagnostics <- function(result,
   
   cfg          <- result$config
   team_model   <- result$team_model
+  model_name   <- cfg$metadata$model_name %||% team_model
   output_dir   <- result$output_dir
   wili_tsibble <- result$wili_tsibble
   origin_dates <- result$origin_dates
   
-  cat(sprintf("\n=== Diagnostics for %s ===\n", team_model))
+  cat(sprintf("\n=== Diagnostics for %s (%s) ===\n", team_model, model_name))
   
   if (is.null(qa_dates)) {
     qa_dates <- as.Date(c(
@@ -645,7 +646,7 @@ run_diagnostics <- function(result,
     
     combined <- patchwork::wrap_plots(plots, ncol = 1) +
       patchwork::plot_annotation(
-        title = paste0(team_model, " -- Fan charts for ", d),
+        title = paste0(model_name, " (", team_model, ") -- ", d),
         subtitle = "Blue = forecast fan (1-99%, 10-90%, 25-75%, median) | Red dots = actuals",
         theme = ggplot2::theme(
           plot.title = ggplot2::element_text(size = 14, face = "bold"))
@@ -692,7 +693,7 @@ run_diagnostics <- function(result,
       ggplot2::geom_line(ggplot2::aes(y = q0.5),
                          color = "steelblue", linewidth = 0.6) +
       ggplot2::labs(
-        title = paste0("Horizon-1 median vs actuals: ", dashboard_loc),
+        title = paste0(model_name, " -- Horizon-1 median vs actuals: ", dashboard_loc),
         subtitle = "Blue = median | Black = actual | Shaded = 90% PI",
         x = "Date", y = "wILI %"
       ) +
@@ -710,7 +711,7 @@ run_diagnostics <- function(result,
     
     dashboard <- p_median / p_width +
       patchwork::plot_annotation(
-        title = paste0(team_model, " -- Sanity Dashboard"),
+        title = paste0(model_name, " (", team_model, ") -- Sanity Dashboard"),
         theme = ggplot2::theme(
           plot.title = ggplot2::element_text(size = 14, face = "bold"))
       )
@@ -728,12 +729,19 @@ run_diagnostics <- function(result,
   }
   
   # =========================================================================
-  # PLOT (c): LAMBDA SUMMARY (only for Box-Cox models)
+  # PLOT (c): TRANSFORM PARAMETER SUMMARY (only if preprocessing produced params)
   # =========================================================================
   
   if (!is.null(result$preprocess$lambdas)) {
-    cat("\n--- Plot (c): Lambda summary ---\n")
+    cat("\n--- Plot (c): Transform parameter summary ---\n")
     lambdas <- result$preprocess$lambdas
+    
+    # Build transform-appropriate title
+    transform_label <- if (identical(cfg$transform, "box_cox_guerrero")) {
+      "Guerrero Box-Cox lambdas"
+    } else {
+      "Transform parameters"
+    }
     
     lambda_df <- tibble::tibble(
       location = names(lambdas),
@@ -750,7 +758,7 @@ run_diagnostics <- function(result,
                          hjust = -0.1, size = 3) +
       ggplot2::coord_flip() +
       ggplot2::labs(
-        title = paste0(team_model, " -- Guerrero Box-Cox lambdas"),
+        title = paste0(model_name, " (", team_model, ") -- ", transform_label),
         subtitle = paste0("lambda ~ 0 -> log | lambda ~ 1 -> no transform | ",
                           "lambda < 0 -> stronger stabilization"),
         x = NULL, y = "Lambda"
@@ -766,6 +774,6 @@ run_diagnostics <- function(result,
                 min(lambdas), max(lambdas), median(lambdas)))
   }
   
-  cat(sprintf("\n=== Diagnostics complete for %s ===\n", team_model))
+  cat(sprintf("\n=== Diagnostics complete for %s (%s) ===\n", team_model, model_name))
   invisible(NULL)
 }
