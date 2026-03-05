@@ -137,8 +137,8 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2018-03-10,HHS Region 10,ili perc,2,2018-03-24,quantile,0.95,3.3348425309929577
 2018-03-10,HHS Region 10,ili perc,2,2018-03-24,quantile,0.975,3.598595656165188
 2018-03-10,HHS Region 10,ili perc,2,2018-03-24,quantile,0.99,3.9052656641208108
-2018-03-10,HHS Region 10,ili perc,3,2018-03-31,quantile,0.01,-0.42674790322790257
-2018-03-10,HHS Region 10,ili perc,3,2018-03-31,quantile,0.025,-0.051155383774635806
+2018-03-10,HHS Region 10,ili perc,3,2018-03-31,quantile,0.01,0
+2018-03-10,HHS Region 10,ili perc,3,2018-03-31,quantile,0.025,0
 2018-03-10,HHS Region 10,ili perc,3,2018-03-31,quantile,0.05,0.2718749035935564
 2018-03-10,HHS Region 10,ili perc,3,2018-03-31,quantile,0.1,0.6443081368132154
 2018-03-10,HHS Region 10,ili perc,3,2018-03-31,quantile,0.15,0.8955870711357787
@@ -160,8 +160,8 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2018-03-10,HHS Region 10,ili perc,3,2018-03-31,quantile,0.95,3.6442650964064427
 2018-03-10,HHS Region 10,ili perc,3,2018-03-31,quantile,0.975,3.967295383774635
 2018-03-10,HHS Region 10,ili perc,3,2018-03-31,quantile,0.99,4.342887903227902
-2018-03-10,HHS Region 10,ili perc,4,2018-04-07,quantile,0.01,-0.7956805167937366
-2018-03-10,HHS Region 10,ili perc,4,2018-04-07,quantile,0.025,-0.36198363236983006
+2018-03-10,HHS Region 10,ili perc,4,2018-04-07,quantile,0.01,0
+2018-03-10,HHS Region 10,ili perc,4,2018-04-07,quantile,0.025,0
 2018-03-10,HHS Region 10,ili perc,4,2018-04-07,quantile,0.05,0.011019614367025808
 2018-03-10,HHS Region 10,ili perc,4,2018-04-07,quantile,0.1,0.4410684692760913
 2018-03-10,HHS Region 10,ili perc,4,2018-04-07,quantile,0.15,0.7312203900217199

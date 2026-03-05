@@ -68,7 +68,7 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2017-01-07,HHS Region 1,ili perc,3,2017-01-28,quantile,0.95,2.6448837416352067
 2017-01-07,HHS Region 1,ili perc,3,2017-01-28,quantile,0.975,2.8495692431128927
 2017-01-07,HHS Region 1,ili perc,3,2017-01-28,quantile,0.99,3.0875603733623387
-2017-01-07,HHS Region 1,ili perc,4,2017-02-04,quantile,0.01,-0.16845150867734798
+2017-01-07,HHS Region 1,ili perc,4,2017-02-04,quantile,0.01,0
 2017-01-07,HHS Region 1,ili perc,4,2017-02-04,quantile,0.025,0.10635697755117361
 2017-01-07,HHS Region 1,ili perc,4,2017-02-04,quantile,0.05,0.3427074363058844
 2017-01-07,HHS Region 1,ili perc,4,2017-02-04,quantile,0.1,0.6152043784475212

@@ -160,7 +160,7 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2019-03-30,HHS Region 10,ili perc,3,2019-04-20,quantile,0.95,4.062294407094404
 2019-03-30,HHS Region 10,ili perc,3,2019-04-20,quantile,0.975,4.377288054305925
 2019-03-30,HHS Region 10,ili perc,3,2019-04-20,quantile,0.99,4.743536242770987
-2019-03-30,HHS Region 10,ili perc,4,2019-04-27,quantile,0.01,-0.26719021652120195
+2019-03-30,HHS Region 10,ili perc,4,2019-04-27,quantile,0.01,0
 2019-03-30,HHS Region 10,ili perc,4,2019-04-27,quantile,0.025,0.15571676387983047
 2019-03-30,HHS Region 10,ili perc,4,2019-04-27,quantile,0.05,0.5194400979010181
 2019-03-30,HHS Region 10,ili perc,4,2019-04-27,quantile,0.1,0.9387898077706178

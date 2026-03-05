@@ -137,7 +137,7 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2017-12-23,HHS Region 10,ili perc,2,2018-01-06,quantile,0.95,3.5258257288847354
 2017-12-23,HHS Region 10,ili perc,2,2018-01-06,quantile,0.975,3.7882269578156715
 2017-12-23,HHS Region 10,ili perc,2,2018-01-06,quantile,0.99,4.093325094231187
-2017-12-23,HHS Region 10,ili perc,3,2018-01-13,quantile,0.01,-0.21648425144202035
+2017-12-23,HHS Region 10,ili perc,3,2018-01-13,quantile,0.01,0
 2017-12-23,HHS Region 10,ili perc,3,2018-01-13,quantile,0.025,0.1571831264040131
 2017-12-23,HHS Region 10,ili perc,3,2018-01-13,quantile,0.05,0.4785576857840274
 2017-12-23,HHS Region 10,ili perc,3,2018-01-13,quantile,0.1,0.8490819706725766
@@ -160,8 +160,8 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2017-12-23,HHS Region 10,ili perc,3,2018-01-13,quantile,0.95,3.833662314215972
 2017-12-23,HHS Region 10,ili perc,3,2018-01-13,quantile,0.975,4.155036873595987
 2017-12-23,HHS Region 10,ili perc,3,2018-01-13,quantile,0.99,4.52870425144202
-2017-12-23,HHS Region 10,ili perc,4,2018-01-20,quantile,0.01,-0.5835258594956182
-2017-12-23,HHS Region 10,ili perc,4,2018-01-20,quantile,0.025,-0.15205193712204013
+2017-12-23,HHS Region 10,ili perc,4,2018-01-20,quantile,0.01,0
+2017-12-23,HHS Region 10,ili perc,4,2018-01-20,quantile,0.025,0
 2017-12-23,HHS Region 10,ili perc,4,2018-01-20,quantile,0.05,0.2190394396154571
 2017-12-23,HHS Region 10,ili perc,4,2018-01-20,quantile,0.1,0.6468840308588522
 2017-12-23,HHS Region 10,ili perc,4,2018-01-20,quantile,0.15,0.935548745374018
@@ -344,7 +344,7 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2017-12-23,HHS Region 3,ili perc,3,2018-01-13,quantile,0.95,3.7821498157013256
 2017-12-23,HHS Region 3,ili perc,3,2018-01-13,quantile,0.975,4.0666019367982145
 2017-12-23,HHS Region 3,ili perc,3,2018-01-13,quantile,0.99,4.397339000796277
-2017-12-23,HHS Region 3,ili perc,4,2018-01-20,quantile,0.01,-0.12755152382073498
+2017-12-23,HHS Region 3,ili perc,4,2018-01-20,quantile,0.01,0
 2017-12-23,HHS Region 3,ili perc,4,2018-01-20,quantile,0.025,0.25435074203980024
 2017-12-23,HHS Region 3,ili perc,4,2018-01-20,quantile,0.05,0.5828077594134977
 2017-12-23,HHS Region 3,ili perc,4,2018-01-20,quantile,0.1,0.96149766478061

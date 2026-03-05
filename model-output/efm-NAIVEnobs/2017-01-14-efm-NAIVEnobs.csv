@@ -68,7 +68,7 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2017-01-14,HHS Region 1,ili perc,3,2017-02-04,quantile,0.95,2.591803018896916
 2017-01-14,HHS Region 1,ili perc,3,2017-02-04,quantile,0.975,2.7963447017960754
 2017-01-14,HHS Region 1,ili perc,3,2017-02-04,quantile,0.99,3.0341686118672118
-2017-01-14,HHS Region 1,ili perc,4,2017-02-11,quantile,0.01,-0.21955549210729464
+2017-01-14,HHS Region 1,ili perc,4,2017-02-11,quantile,0.01,0
 2017-01-14,HHS Region 1,ili perc,4,2017-02-11,quantile,0.025,0.055059904891305265
 2017-01-14,HHS Region 1,ili perc,4,2017-02-11,quantile,0.05,0.2912442962559623
 2017-01-14,HHS Region 1,ili perc,4,2017-02-11,quantile,0.1,0.5635497733324686
@@ -137,7 +137,7 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2017-01-14,HHS Region 10,ili perc,2,2017-01-28,quantile,0.95,3.557961049160493
 2017-01-14,HHS Region 10,ili perc,2,2017-01-28,quantile,0.975,3.827311667968096
 2017-01-14,HHS Region 10,ili perc,2,2017-01-28,quantile,0.99,4.140489971954601
-2017-01-14,HHS Region 10,ili perc,3,2017-02-04,quantile,0.01,-0.2834596373111447
+2017-01-14,HHS Region 10,ili perc,3,2017-02-04,quantile,0.01,0
 2017-01-14,HHS Region 10,ili perc,3,2017-02-04,quantile,0.025,0.10010388432744365
 2017-01-14,HHS Region 10,ili perc,3,2017-02-04,quantile,0.05,0.4299896733182056
 2017-01-14,HHS Region 10,ili perc,3,2017-02-04,quantile,0.1,0.8103268608557025
@@ -160,8 +160,8 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2017-01-14,HHS Region 10,ili perc,3,2017-02-04,quantile,0.95,3.8739503266817934
 2017-01-14,HHS Region 10,ili perc,3,2017-02-04,quantile,0.975,4.203836115672556
 2017-01-14,HHS Region 10,ili perc,3,2017-02-04,quantile,0.99,4.587399637311145
-2017-01-14,HHS Region 10,ili perc,4,2017-02-11,quantile,0.01,-0.660221913387964
-2017-01-14,HHS Region 10,ili perc,4,2017-02-11,quantile,0.025,-0.2173209084492444
+2017-01-14,HHS Region 10,ili perc,4,2017-02-11,quantile,0.01,0
+2017-01-14,HHS Region 10,ili perc,4,2017-02-11,quantile,0.025,0
 2017-01-14,HHS Region 10,ili perc,4,2017-02-11,quantile,0.05,0.1635983897020526
 2017-01-14,HHS Region 10,ili perc,4,2017-02-11,quantile,0.1,0.6027739449172507
 2017-01-14,HHS Region 10,ili perc,4,2017-02-11,quantile,0.15,0.89908360703032

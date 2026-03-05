@@ -114,7 +114,7 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2018-12-29,HHS Region 10,ili perc,1,2019-01-05,quantile,0.95,2.5926327392819353
 2018-12-29,HHS Region 10,ili perc,1,2019-01-05,quantile,0.975,2.7746261682878335
 2018-12-29,HHS Region 10,ili perc,1,2019-01-05,quantile,0.99,2.9862328602831036
-2018-12-29,HHS Region 10,ili perc,2,2019-01-12,quantile,0.01,-0.25748724532002354
+2018-12-29,HHS Region 10,ili perc,2,2019-01-12,quantile,0.01,0
 2018-12-29,HHS Region 10,ili perc,2,2019-01-12,quantile,0.025,0.0417698083885932
 2018-12-29,HHS Region 10,ili perc,2,2019-01-12,quantile,0.05,0.2991473839515194
 2018-12-29,HHS Region 10,ili perc,2,2019-01-12,quantile,0.1,0.5958872451146938
@@ -137,9 +137,9 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2018-12-29,HHS Region 10,ili perc,2,2019-01-12,quantile,0.95,2.9861326160484802
 2018-12-29,HHS Region 10,ili perc,2,2019-01-12,quantile,0.975,3.243510191611407
 2018-12-29,HHS Region 10,ili perc,2,2019-01-12,quantile,0.99,3.542767245320024
-2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.01,-0.6845310986971264
-2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.025,-0.31801755693974076
-2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.05,-0.0027956912578457668
+2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.01,0
+2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.025,0
+2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.05,0
 2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.1,0.3606349318392042
 2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.15,0.6058398478520308
 2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.2,0.800720941945003
@@ -160,9 +160,9 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.95,3.2880756912578453
 2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.975,3.6032975569397405
 2018-12-29,HHS Region 10,ili perc,3,2019-01-19,quantile,0.99,3.9698110986971265
-2018-12-29,HHS Region 10,ili perc,4,2019-01-26,quantile,0.01,-1.0445457205662065
-2018-12-29,HHS Region 10,ili perc,4,2019-01-26,quantile,0.025,-0.6213323365756671
-2018-12-29,HHS Region 10,ili perc,4,2019-01-26,quantile,0.05,-0.25734547856387074
+2018-12-29,HHS Region 10,ili perc,4,2019-01-26,quantile,0.01,0
+2018-12-29,HHS Region 10,ili perc,4,2019-01-26,quantile,0.025,0
+2018-12-29,HHS Region 10,ili perc,4,2019-01-26,quantile,0.05,0
 2018-12-29,HHS Region 10,ili perc,4,2019-01-26,quantile,0.1,0.16230805758979977
 2018-12-29,HHS Region 10,ili perc,4,2019-01-26,quantile,0.15,0.4454463061230498
 2018-12-29,HHS Region 10,ili perc,4,2019-01-26,quantile,0.2,0.6704756103921425

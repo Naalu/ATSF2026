@@ -160,7 +160,7 @@ origin_date,location,target,horizon,target_end_date,output_type,output_type_id,v
 2018-02-17,HHS Region 10,ili perc,3,2018-03-10,quantile,0.95,4.38902386664176
 2018-02-17,HHS Region 10,ili perc,3,2018-03-10,quantile,0.975,4.712488790252609
 2018-02-17,HHS Region 10,ili perc,3,2018-03-10,quantile,0.99,5.088586668267622
-2018-02-17,HHS Region 10,ili perc,4,2018-03-17,quantile,0.01,-0.05689567951263432
+2018-02-17,HHS Region 10,ili perc,4,2018-03-17,quantile,0.01,0
 2018-02-17,HHS Region 10,ili perc,4,2018-03-17,quantile,0.025,0.37738474271459527
 2018-02-17,HHS Region 10,ili perc,4,2018-03-17,quantile,0.05,0.7508898641548453
 2018-02-17,HHS Region 10,ili perc,4,2018-03-17,quantile,0.1,1.1815173484549164
