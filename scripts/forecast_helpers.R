@@ -227,6 +227,7 @@ compute_quantiles_from_sims <- function(sims_tsibble, quantile_levels = QUANTILE
 #' # hub_df <- format_for_hub(quantile_df, as.Date("2016-12-03"), "KReger-snaive_bc_bs")
 ###############################################################################
 format_for_hub <- function(quantile_df, origin_date, team_model) {
+
   stopifnot(
     "origin_date must be a single Date" =
       inherits(origin_date, "Date") && length(origin_date) == 1,
