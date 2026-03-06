@@ -46,8 +46,14 @@ EXPECTED_ROWS <- length(HUB_LOCATIONS) * length(HUB_HORIZONS) * length(QUANTILE_
 
 # Expected column names in hub submission order
 EXPECTED_COLS <- c(
-  DATE_COL, "location", "target", "horizon",
-  "target_end_date", "output_type", "output_type_id", "value"
+  DATE_COL,
+  "location",
+  "target",
+  "horizon",
+  "target_end_date",
+  "output_type",
+  "output_type_id",
+  "value"
 )
 
 
@@ -65,11 +71,8 @@ EXPECTED_COLS <- c(
 #' wili <- load_and_prepare_tsibble("target-data/time-series.csv")
 ###############################################################################
 load_and_prepare_tsibble <- function(data_path) {
-  
-  stopifnot(
-    "data_path must be a single character string" =
-      is.character(data_path) && length(data_path) == 1
-  )
+  stopifnot("data_path must be a single character string" =
+              is.character(data_path) && length(data_path) == 1)
   
   wili_raw <- readr::read_csv(data_path, show_col_types = FALSE)
   
@@ -80,7 +83,8 @@ load_and_prepare_tsibble <- function(data_path) {
     stop(
       "Target data CSV is missing columns: ",
       paste(missing_cols, collapse = ", "),
-      "\nFound: ", paste(names(wili_raw), collapse = ", ")
+      "\nFound: ",
+      paste(names(wili_raw), collapse = ", ")
     )
   }
   
@@ -92,8 +96,12 @@ load_and_prepare_tsibble <- function(data_path) {
   n_locs <- length(unique(wili_tsibble$location))
   if (n_locs != length(HUB_LOCATIONS)) {
     warning(
-      "Expected ", length(HUB_LOCATIONS), " locations but found ", n_locs,
-      ". Locations: ", paste(unique(wili_tsibble$location), collapse = ", ")
+      "Expected ",
+      length(HUB_LOCATIONS),
+      " locations but found ",
+      n_locs,
+      ". Locations: ",
+      paste(unique(wili_tsibble$location), collapse = ", ")
     )
   }
   
@@ -108,13 +116,12 @@ load_and_prepare_tsibble <- function(data_path) {
 #' origin dates that forecasts should be submitted for.
 #'
 #' @param tasks_json_path Character string. Path to hub-config/tasks.json.
-#' @return A sorted Date vector of origin dates (all Saturdays). 139 for this hub.
+#' @return A sorted Date vector of origin dates (all Saturdays).
 #'
 #' @examples
 #' dates <- get_origin_dates("hub-config/tasks.json")
 ###############################################################################
 get_origin_dates <- function(tasks_json_path) {
-  
   stopifnot(
     "tasks_json_path must be a single character string" =
       is.character(tasks_json_path) && length(tasks_json_path) == 1
@@ -135,7 +142,8 @@ get_origin_dates <- function(tasks_json_path) {
   if (is.null(raw_dates)) {
     stop(
       "Could not find origin dates in tasks.json. ",
-      "Available task_id fields: ", paste(names(task_ids), collapse = ", ")
+      "Available task_id fields: ",
+      paste(names(task_ids), collapse = ", ")
     )
   }
   
@@ -145,8 +153,15 @@ get_origin_dates <- function(tasks_json_path) {
     warning("Not all origin dates are Saturdays — check tasks.json")
   }
   
-  cat(paste0("  Loaded ", length(origin_dates), " origin dates (",
-             min(origin_dates), " to ", max(origin_dates), ")\n"))
+  cat(paste0(
+    "  Loaded ",
+    length(origin_dates),
+    " origin dates (",
+    min(origin_dates),
+    " to ",
+    max(origin_dates),
+    ")\n"
+  ))
   
   return(origin_dates)
 }
@@ -167,14 +182,13 @@ get_origin_dates <- function(tasks_json_path) {
 #' @examples
 #' # quantile_df <- compute_quantiles_from_sims(sims)
 ###############################################################################
-compute_quantiles_from_sims <- function(sims_tsibble,
-                                        quantile_levels = QUANTILE_LEVELS) {
-  
+compute_quantiles_from_sims <- function(sims_tsibble, quantile_levels = QUANTILE_LEVELS) {
   # Validate required columns
   required <- c(".sim", "location", "target_end_date")
   missing <- setdiff(required, names(sims_tsibble))
   if (length(missing) > 0) {
-    stop("sims_tsibble is missing required columns: ", paste(missing, collapse = ", "))
+    stop("sims_tsibble is missing required columns: ",
+         paste(missing, collapse = ", "))
   }
   
   # Group by location × date, compute quantile at each level.
@@ -213,26 +227,28 @@ compute_quantiles_from_sims <- function(sims_tsibble,
 #' # hub_df <- format_for_hub(quantile_df, as.Date("2016-12-03"), "KReger-snaive_bc_bs")
 ###############################################################################
 format_for_hub <- function(quantile_df, origin_date, team_model) {
-  
+
   stopifnot(
     "origin_date must be a single Date" =
       inherits(origin_date, "Date") && length(origin_date) == 1,
     "team_model must be a non-empty character string" =
-      is.character(team_model) && length(team_model) == 1 && nchar(team_model) > 0,
+      is.character(team_model) &&
+      length(team_model) == 1 && nchar(team_model) > 0,
     "quantile_df must have columns: location, target_end_date, output_type_id, value" =
-      all(c("location", "target_end_date", "output_type_id", "value") %in%
-            names(quantile_df))
+      all(
+        c("location", "target_end_date", "output_type_id", "value") %in%
+          names(quantile_df)
+      )
   )
   
   hub_df <- quantile_df |>
     dplyr::mutate(
-      # Set the date column name dynamically via rlang (resolves to "origin_date")
-      !!DATE_COL := origin_date,
+      # Set the date column name dynamically via rlang (resolves to "origin_date")!!DATE_COL := origin_date,
       target = "ili perc",
       # Both dates are Saturdays, so day difference / 7 = integer horizon
-      horizon = as.integer(
-        as.numeric(difftime(target_end_date, origin_date, units = "days")) / 7
-      ),
+      horizon = as.integer(as.numeric(
+        difftime(target_end_date, origin_date, units = "days")
+      ) / 7),
       output_type = "quantile",
       # Safety net: enforce non-negativity even if already floored upstream
       value = pmax(value, 0)
@@ -258,16 +274,15 @@ format_for_hub <- function(quantile_df, origin_date, team_model) {
 #' @examples
 #' # validate_forecast_df(hub_df, as.Date("2016-12-03"))
 ###############################################################################
-validate_forecast_df <- function(df, origin_date,
-                                 quantile_levels = QUANTILE_LEVELS) {
-  
+validate_forecast_df <- function(df, origin_date, quantile_levels = QUANTILE_LEVELS) {
   # Helper: print pass/fail, stop on failure
   check <- function(condition, description, detail = NULL) {
     if (condition) {
       cat(paste0("    \u2713 ", description, "\n"))
     } else {
       cat(paste0("    \u2717 ", description, "\n"))
-      if (!is.null(detail)) cat(paste0("      Detail: ", detail, "\n"))
+      if (!is.null(detail))
+        cat(paste0("      Detail: ", detail, "\n"))
       stop("Validation failed: ", description, call. = FALSE)
     }
   }
@@ -279,46 +294,48 @@ validate_forecast_df <- function(df, origin_date,
     identical(sort(names(df)), sort(EXPECTED_COLS)),
     "Column names match expected",
     detail = paste0(
-      "Expected: ", paste(sort(EXPECTED_COLS), collapse = ", "),
-      " | Got: ", paste(sort(names(df)), collapse = ", ")
+      "Expected: ",
+      paste(sort(EXPECTED_COLS), collapse = ", "),
+      " | Got: ",
+      paste(sort(names(df)), collapse = ", ")
     )
   )
   
-  check(
-    ncol(df) == 8,
-    paste0("Column count is 8 (got ", ncol(df), ")")
-  )
+  check(ncol(df) == 8, paste0("Column count is 8 (got ", ncol(df), ")"))
   
   # CHECK 2: Row count
-  check(
-    nrow(df) == EXPECTED_ROWS,
-    paste0("Row count is ", EXPECTED_ROWS, " (got ", nrow(df), ")")
-  )
+  check(nrow(df) == EXPECTED_ROWS,
+        paste0("Row count is ", EXPECTED_ROWS, " (got ", nrow(df), ")"))
   
   # CHECK 3: Non-negative values
   neg_count <- sum(df$value < 0, na.rm = TRUE)
   check(
     neg_count == 0,
     "All values are non-negative",
-    detail = if (neg_count > 0) paste0(neg_count, " negative values found")
+    detail = if (neg_count > 0)
+      paste0(neg_count, " negative values found")
   )
   
   # CHECK 4: No NAs
   na_count <- sum(is.na(df$value))
-  check(
-    na_count == 0,
-    "No NA values",
-    detail = if (na_count > 0) paste0(na_count, " NA values found")
-  )
+  check(na_count == 0,
+        "No NA values",
+        detail = if (na_count > 0)
+          paste0(na_count, " NA values found"))
   
   # CHECK 5: 23 quantiles per location-horizon group
   q_counts <- df |>
     dplyr::group_by(location, horizon) |>
-    dplyr::summarise(n_q = dplyr::n_distinct(output_type_id), .groups = "drop")
+    dplyr::summarise(n_q = dplyr::n_distinct(output_type_id),
+                     .groups = "drop")
   
   check(
     all(q_counts$n_q == length(quantile_levels)),
-    paste0("Each location-horizon group has ", length(quantile_levels), " quantiles"),
+    paste0(
+      "Each location-horizon group has ",
+      length(quantile_levels),
+      " quantiles"
+    ),
     detail = if (!all(q_counts$n_q == length(quantile_levels))) {
       bad <- q_counts |> dplyr::filter(n_q != length(quantile_levels))
       paste0("Mismatched groups: ", nrow(bad))
@@ -333,8 +350,12 @@ validate_forecast_df <- function(df, origin_date,
     length(extra) == 0 && length(missing_q) == 0,
     "Quantile levels match expected set",
     detail = if (length(extra) > 0 || length(missing_q) > 0) {
-      paste0("Extra: ", paste(extra, collapse = ", "),
-             " | Missing: ", paste(missing_q, collapse = ", "))
+      paste0(
+        "Extra: ",
+        paste(extra, collapse = ", "),
+        " | Missing: ",
+        paste(missing_q, collapse = ", ")
+      )
     }
   )
   
@@ -342,10 +363,8 @@ validate_forecast_df <- function(df, origin_date,
   mono_check <- df |>
     dplyr::group_by(location, horizon) |>
     dplyr::arrange(output_type_id, .by_group = TRUE) |>
-    dplyr::summarise(
-      is_monotonic = all(diff(value) >= -1e-10),
-      .groups = "drop"
-    )
+    dplyr::summarise(is_monotonic = all(diff(value) >= -1e-10),
+                     .groups = "drop")
   
   check(
     all(mono_check$is_monotonic),
@@ -360,7 +379,11 @@ validate_forecast_df <- function(df, origin_date,
   actual_horizons <- sort(unique(as.integer(df$horizon)))
   check(
     identical(actual_horizons, as.integer(HUB_HORIZONS)),
-    paste0("Horizons are {1,2,3,4} (got {", paste(actual_horizons, collapse = ","), "})"),
+    paste0(
+      "Horizons are {1,2,3,4} (got {",
+      paste(actual_horizons, collapse = ","),
+      "})"
+    ),
     detail = paste0("Expected: ", paste(HUB_HORIZONS, collapse = ","))
   )
   
@@ -371,13 +394,12 @@ validate_forecast_df <- function(df, origin_date,
       date_ok = (target_end_date == expected_ted)
     )
   
-  check(
-    all(date_check$date_ok),
-    "target_end_date == origin_date + horizon * 7",
-    detail = if (!all(date_check$date_ok)) {
-      paste0(sum(!date_check$date_ok), " rows have incorrect target_end_date")
-    }
-  )
+  check(all(date_check$date_ok),
+        "target_end_date == origin_date + horizon * 7",
+        detail = if (!all(date_check$date_ok)) {
+          paste0(sum(!date_check$date_ok),
+                 " rows have incorrect target_end_date")
+        })
   
   # CHECK 10: origin_date column matches expected date
   unique_dates <- unique(df[[DATE_COL]])
@@ -400,17 +422,19 @@ validate_forecast_df <- function(df, origin_date,
     setequal(actual_locs, HUB_LOCATIONS),
     "Location set matches all 11 expected locations",
     detail = if (!setequal(actual_locs, HUB_LOCATIONS)) {
-      paste0("Missing: ", paste(setdiff(HUB_LOCATIONS, actual_locs), collapse = ", "),
-             " | Extra: ", paste(setdiff(actual_locs, HUB_LOCATIONS), collapse = ", "))
+      paste0(
+        "Missing: ",
+        paste(setdiff(HUB_LOCATIONS, actual_locs), collapse = ", "),
+        " | Extra: ",
+        paste(setdiff(actual_locs, HUB_LOCATIONS), collapse = ", ")
+      )
     }
   )
   
   # CHECK 13: target is "ili perc"
-  check(
-    identical(unique(df$target), "ili perc"),
-    'target is "ili perc"',
-    detail = paste0("Found: ", paste(unique(df$target), collapse = ", "))
-  )
+  check(identical(unique(df$target), "ili perc"),
+        'target is "ili perc"',
+        detail = paste0("Found: ", paste(unique(df$target), collapse = ", ")))
   
   # CHECK 14: output_type is "quantile"
   check(
@@ -437,7 +461,6 @@ validate_forecast_df <- function(df, origin_date,
 #' @return The full file path (invisibly).
 ###############################################################################
 write_hub_csv <- function(df, origin_date, output_dir, team_model) {
-  
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
@@ -465,9 +488,10 @@ write_hub_csv <- function(df, origin_date, output_dir, team_model) {
 #' @examples
 #' # p <- plot_quantile_fan(hub_df, wili_tsibble, as.Date("2016-12-03"), "US National")
 ###############################################################################
-plot_quantile_fan <- function(forecast_df, actuals_tsibble,
-                              origin_date, location = "US National") {
-  
+plot_quantile_fan <- function(forecast_df,
+                              actuals_tsibble,
+                              origin_date,
+                              location = "US National") {
   fc_loc <- forecast_df |>
     dplyr::filter(location == !!location)
   
@@ -478,8 +502,11 @@ plot_quantile_fan <- function(forecast_df, actuals_tsibble,
   # Pivot quantiles to wide format for ribbon plotting
   fc_wide <- fc_loc |>
     dplyr::select(target_end_date, output_type_id, value) |>
-    tidyr::pivot_wider(names_from = output_type_id, values_from = value,
-                       names_prefix = "q")
+    tidyr::pivot_wider(
+      names_from = output_type_id,
+      values_from = value,
+      names_prefix = "q"
+    )
   
   # Show ~6 months before and ~2 months after the origin date
   window_start <- origin_date - lubridate::weeks(26)
@@ -498,45 +525,53 @@ plot_quantile_fan <- function(forecast_df, actuals_tsibble,
     ggplot2::geom_ribbon(
       data = fc_wide,
       ggplot2::aes(x = target_end_date, ymin = q0.01, ymax = q0.99),
-      fill = "steelblue", alpha = 0.15
+      fill = "steelblue",
+      alpha = 0.15
     ) +
     ggplot2::geom_ribbon(
       data = fc_wide,
       ggplot2::aes(x = target_end_date, ymin = q0.1, ymax = q0.9),
-      fill = "steelblue", alpha = 0.25
+      fill = "steelblue",
+      alpha = 0.25
     ) +
     ggplot2::geom_ribbon(
       data = fc_wide,
       ggplot2::aes(x = target_end_date, ymin = q0.25, ymax = q0.75),
-      fill = "steelblue", alpha = 0.4
+      fill = "steelblue",
+      alpha = 0.4
     ) +
     # Median forecast
     ggplot2::geom_line(
       data = fc_wide,
       ggplot2::aes(x = target_end_date, y = q0.5),
-      color = "steelblue", linewidth = 1
+      color = "steelblue",
+      linewidth = 1
     ) +
     # Historical actuals (black line)
     ggplot2::geom_line(
       data = actuals_window,
       ggplot2::aes(x = target_end_date, y = observation),
-      color = "black", linewidth = 0.5
+      color = "black",
+      linewidth = 0.5
     ) +
     # Future actuals (red dots — what we're trying to predict)
     ggplot2::geom_point(
       data = actuals_window |>
         dplyr::filter(target_end_date > origin_date),
       ggplot2::aes(x = target_end_date, y = observation),
-      color = "red", size = 2
+      color = "red",
+      size = 2
     ) +
     ggplot2::geom_vline(
       xintercept = as.numeric(origin_date),
-      linetype = "dashed", color = "gray40"
+      linetype = "dashed",
+      color = "gray40"
     ) +
     ggplot2::labs(
       title = paste0("Forecast fan chart: ", location),
       subtitle = paste0("Origin date: ", origin_date),
-      x = "Date", y = "wILI %"
+      x = "Date",
+      y = "wILI %"
     ) +
     ggplot2::theme_minimal()
   
