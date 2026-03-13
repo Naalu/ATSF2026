@@ -1,0 +1,18 @@
+team_name: "Reger"
+team_abbr: "KReger"
+model_name: "Seasonal Naive with Box-Cox and Bootstrap"
+model_abbr: "snaive_bc_bs"
+designated_model: true
+model_contributors: [
+  {
+    "name": "Karl Reger",
+    "affiliation": "Northern Arizona University",
+    "email": "kcr28@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: ILI%
+methods: Seasonal naive forecasts with Box-Cox variance stabilization and bootstrapped residual prediction intervals via fable generate().
+methods_long: Uses SNAIVE() with a yearly lag and Box-Cox transformation (lambda estimated via guerrero method per location) to forecast weekly weighted ILI percentages. Prediction intervals are generated from 1000 bootstrapped residual paths using fable generate(bootstrap=TRUE), with empirical quantiles extracted at 23 levels. Forecasted values are floored at zero to ensure non-negativity.
+ensemble_of_models: false
+ensemble_of_hub_models: false
