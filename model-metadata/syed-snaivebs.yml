@@ -1,0 +1,18 @@
+team_name: "syed"
+team_abbr: "syed"
+model_name: "snaivebs"
+model_abbr: "snaivebs"
+designated_model: true
+model_contributors: [
+  {
+    "name": "Syed Md Shamsul Alam",
+    "affiliation": "Northern Arizona University",
+    "email": "ss5687@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: "ILI%"
+methods: "Forecasts based on the seasonal naive model and uses bootstrapped residuals for producing forecast uncertainty."
+methods_long: "Uses the SNAIVE() function in the fable package to make forecasts and then generates bootstrap prediction intervals from the residuals using the generate() function in fable."
+ensemble_of_models: false
+ensemble_of_hub_models: false
