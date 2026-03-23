@@ -92,7 +92,7 @@ config <- list(
   #
   # lambda argument is ignored (NA) since transform = "none".
   model_fn = function(lambda) {
-    TSLM(log(observation + 0.001) ~ trend() + fourier(K = 5))
+    TSLM(log(observation + 0.001) ~ trend() + fourier(K = 5, period = 52))
   },
 
   # ---- Simulation method ----
@@ -101,7 +101,7 @@ config <- list(
   # (year-to-year differences in peak timing/height, unusual events).
   # Resampling these residuals produces intervals that reflect this
   # irreducible uncertainty.
-  simulate_method = "bootstrap",
+  simulate_method = "parametric",
 
   # ---- Custom simulation function ----
   custom_simulate_fn = NULL,

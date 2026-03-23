@@ -242,7 +242,8 @@ format_for_hub <- function(quantile_df, origin_date, team_model) {
   
   hub_df <- quantile_df |>
     dplyr::mutate(
-      # Set the date column name dynamically via rlang (resolves to "origin_date")!!DATE_COL := origin_date,
+      # Set the date column name dynamically via rlang (resolves to "origin_date")
+      !!DATE_COL := origin_date,
       target = "ili perc",
       # Both dates are Saturdays, so day difference / 7 = integer horizon
       horizon = as.integer(as.numeric(
