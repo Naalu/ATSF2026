@@ -1,0 +1,18 @@
+team_name: "Reger"
+team_abbr: "KReger"
+model_name: "Regression with Fourier Seasonality and Bootstrap"
+model_abbr: "tslm_fourier"
+designated_model: false
+model_contributors: [
+  {
+    "name": "Karl Reger",
+    "affiliation": "Northern Arizona University",
+    "email": "kcr28@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: "ILI%"
+methods: "Linear regression with Fourier seasonal terms (K=5), log transform, and bootstrapped residual intervals via fable."
+methods_long: "Uses fable's TSLM() with a linear trend and 5 Fourier harmonic pairs (10 sine/cosine terms) to approximate the annual ILI seasonal cycle as a smooth curve. Log(x+0.001) transform stabilizes variance and makes seasonality multiplicative. Prediction intervals from 1000 bootstrapped residual paths via fable generate(bootstrap=TRUE). Empirical quantiles at 23 levels. Values floored at zero for non-negativity."
+ensemble_of_models: false
+ensemble_of_hub_models: false

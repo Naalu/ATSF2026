@@ -1,0 +1,18 @@
+team_name: "Reger"
+team_abbr: "KReger"
+model_name: "STL Decomposition with ARIMA and Box-Cox"
+model_abbr: "stl_arima_bc"
+designated_model: false
+model_contributors: [
+  {
+    "name": "Karl Reger",
+    "affiliation": "Northern Arizona University",
+    "email": "kcr28@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: "ILI%"
+methods: "STL seasonal decomposition with ARIMA on remainder, Box-Cox stabilization, bootstrapped intervals via fable generate()."
+methods_long: "Two-stage model using fabletools decomposition_model(). Stage 1: STL decomposes Box-Cox transformed ILI% into seasonal (period 52, loess-based) and seasonally adjusted components. Stage 2: Auto-ARIMA models the seasonally adjusted remainder. Forecasts recombine the ARIMA predictions with the last seasonal cycle. Lambda estimated via guerrero per location. Prediction intervals from 1000 bootstrapped residual paths. Empirical quantiles at 23 levels, floored at zero."
+ensemble_of_models: false
+ensemble_of_hub_models: false

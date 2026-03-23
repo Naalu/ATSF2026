@@ -1,0 +1,18 @@
+team_name: "Reger"
+team_abbr: "KReger"
+model_name: "Neural Network Autoregression with Box-Cox and Bootstrap"
+model_abbr: "nnetar_bc_bs"
+designated_model: false
+model_contributors: [
+  {
+    "name": "Karl Reger",
+    "affiliation": "Northern Arizona University",
+    "email": "kcr28@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: "ILI%"
+methods: "NNETAR neural network autoregression with Box-Cox stabilization and bootstrapped residual simulation via fable generate()."
+methods_long: "Uses fable's NNETAR() feed-forward neural network with auto-selected lagged inputs (seasonal and non-seasonal) and Box-Cox transformation (lambda via guerrero per location). Twenty networks with random starting weights are averaged. Prediction intervals from 1000 bootstrapped residual simulation paths using fable generate(bootstrap=TRUE). Empirical quantiles at 23 levels. Values floored at zero for non-negativity."
+ensemble_of_models: false
+ensemble_of_hub_models: false
