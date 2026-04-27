@@ -1,0 +1,27 @@
+Phase 3A: BMA weight comparison
+Generated: 2026-04-27 12:02:41
+R version: R version 4.5.2 (2025-10-31)
+scoringutils: 2.2.0
+quadprog: 1.5.8
+
+Ensemble models (8):
+  - nnetar_bc_bs
+  - stl_arima_bc
+  - arima_bc_bs
+  - ets_bc
+  - hist_week
+  - bsts_seasonal
+  - tslm_fourier
+  - snaive_bc_bs
+
+LOO-CV results:
+# A tibble: 3 × 3
+  method        loo_wis ranking
+  <chr>           <dbl>   <int>
+1 log_score_bma    638.       1
+2 stacking         662.       2
+3 inverse_wis      684.       3
+
+Winner: log_score_bma
+Best tau (log-score BMA): 0.075
+Inverse-WIS beta: 1.000
