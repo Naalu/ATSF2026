@@ -1,0 +1,22 @@
+Phase 2 candidate scoring run
+Generated: 2026-04-27 10:34:41
+R version: R version 4.5.2 (2025-10-31)
+scoringutils: 2.2.0
+dplyr: 1.2.0
+
+Candidate models (11):
+  - snaive_bc_bs
+  - ets_log
+  - arima_bc_bs
+  - nnetar_bc_bs
+  - tslm_fourier
+  - stl_arima_bc
+  - hist_week
+  - bsts_seasonal
+  - ets_bc
+  - arima_log
+  - nnetar_log
+
+Validation cutoff: 2017-05-06
+Validation origin dates: 57
+Total forecast rows scored: 27588
