@@ -1,0 +1,4 @@
+pair,verdict,reason
+ets_log vs ets_bc,ets_bc,"wins 9 of 12 cells (vs 0), 3 ties"
+arima_bc_bs vs arima_log,arima_bc_bs,"wins 10 of 12 cells (vs 0), 2 ties"
+nnetar_bc_bs vs nnetar_log,nnetar_bc_bs,"wins 3 of 12 cells (vs 1), 8 ties"
