@@ -1,0 +1,18 @@
+team_name: "Reger"
+team_abbr: "KReger"
+model_name: "Auto-ARIMA with Log Transform and Bootstrap"
+model_abbr: "arima_log"
+designated_model: false
+model_contributors: [
+  {
+    "name": "Karl Reger",
+    "affiliation": "Northern Arizona University",
+    "email": "kcr28@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: "ILI%"
+methods: "Auto-ARIMA with log(x + 0.001) variance stabilization and bootstrapped residual prediction intervals via fable generate()."
+methods_long: "Uses fable's ARIMA() with automatic (p,d,q)(P,D,Q)[52] order selection via AICc and a log(x + 0.001) transformation to forecast weekly weighted ILI percentages. The 0.001 offset prevents log(0) for the rare zero-valued summer observations in the training data. Fable parses the formula symbolically and back-transforms forecast paths automatically. Prediction intervals are generated from 1000 bootstrapped residual paths via fable generate(bootstrap=TRUE), with empirical quantiles extracted at 23 levels and floored at zero. Companion candidate to arima_bc_bs: same model family, simpler transform (log = Box-Cox with lambda=0). Phase 2 correlation analysis will determine whether both add value to the ensemble or are twins."
+ensemble_of_models: false
+ensemble_of_hub_models: false
