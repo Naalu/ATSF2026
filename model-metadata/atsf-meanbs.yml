@@ -1,0 +1,19 @@
+team_name: "atsf"
+team_abbr: "atsf"
+model_name: "meanbs"
+model_abbr: "meanbs"
+designated_model: true
+model_contributors: [
+  {
+    "name": "Spencer J. Fox",
+    "affiliation": "Northern Arizona University",
+    "email": "spencer.fox@nau.edu",
+    "orcid": "0000-0003-1969-3778"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: ILI%
+methods: Forecasts based on the historic mean and uses bootstrapped residuals for producing forecast uncertainty. 
+methods_long: Uses the MEAN() function in the fable package to make forecasts and then generates bootstrap prediction intervals from the residuals using the generate() function in fable.
+ensemble_of_models: false
+ensemble_of_hub_models: false

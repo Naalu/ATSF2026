@@ -1,0 +1,19 @@
+team_name: "atsf"
+team_abbr: "atsf"
+model_name: "Mean model without bootstrapping"
+model_abbr: "meannonbs"
+designated_model: true
+model_contributors: [
+  {
+    "name": "Logan Ozment",
+    "affiliation": "Northern Arizona University",
+    "email": "lo389@nau.edu",
+    "orcid": "0009-0007-6799-5793"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: ILI%
+methods: Forecasts based on the historic mean and uses non-bootstrapped residuals for producing forecast uncertainty. 
+methods_long: Uses the MEAN() function in the fable package to make forecasts.
+ensemble_of_models: false
+ensemble_of_hub_models: false

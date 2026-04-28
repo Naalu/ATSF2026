@@ -1,0 +1,19 @@
+team_name: "adk"
+team_abbr: "adk"
+model_name: "rwdriftbs"
+model_abbr: "rwdriftbs"
+designated_model: true
+model_contributors: [
+  {
+    "name": "Andrew Kerfoot",
+    "affiliation": "Northern Arizona University",
+    "email": "adk254@nau.edu",
+    "orcid": "0009-0004-2902-3895"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: ILI%
+methods: Forecasts based on a random walk with drift and uses bootstrapped residuals for producing forecast uncertainty.
+methods_long: Uses the RWDRIFT() function in the fable package to make forecasts and then generates bootstrap prediction intervals from the residuals using the generate() function in fable.
+ensemble_of_models: false
+ensemble_of_hub_models: false
