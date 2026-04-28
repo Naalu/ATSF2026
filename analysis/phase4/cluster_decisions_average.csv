@@ -1,0 +1,21 @@
+model_label,cluster,model,wis,wis_disp,is_survivor,cluster_size,decision_method,cluster_members
+KR_snaive_bc,1,KReger-snaive_bc_bs,0.62591637330087,0.2409240919754725,TRUE,3,per_cell_wis,"ata_snv, KR_snaive_bc, syed_snv"
+syed_snv,1,syed-snaivebs,0.6576624793576039,0.14904301330899644,FALSE,3,per_cell_wis,"ata_snv, KR_snaive_bc, syed_snv"
+ata_snv,1,ata266-snaivenonbs,0.6709698708306923,0.3010451447322663,FALSE,3,per_cell_wis,"ata_snv, KR_snaive_bc, syed_snv"
+KR_arima_bc,2,KReger-arima_bc_bs,0.2990851463568473,0.129410147630693,TRUE,7,per_cell_wis,"adk_rwd, efm_naive, hcr_rwd, KR_arima_bc, KR_arima_log, KR_ets_bc, KR_ets_log"
+KR_arima_log,2,KReger-arima_log,0.3119350037819893,0.14424515483681952,FALSE,7,per_cell_wis,"adk_rwd, efm_naive, hcr_rwd, KR_arima_bc, KR_arima_log, KR_ets_bc, KR_ets_log"
+KR_ets_bc,2,KReger-ets_bc,0.33051378029262124,0.1481664383564947,FALSE,7,per_cell_wis,"adk_rwd, efm_naive, hcr_rwd, KR_arima_bc, KR_arima_log, KR_ets_bc, KR_ets_log"
+KR_ets_log,2,KReger-ets_log,0.34053752802956044,0.16231952889061896,FALSE,7,per_cell_wis,"adk_rwd, efm_naive, hcr_rwd, KR_arima_bc, KR_arima_log, KR_ets_bc, KR_ets_log"
+efm_naive,2,efm-NAIVEnobs,0.35489790818432715,0.15889076618384998,FALSE,7,per_cell_wis,"adk_rwd, efm_naive, hcr_rwd, KR_arima_bc, KR_arima_log, KR_ets_bc, KR_ets_log"
+adk_rwd,2,adk-rwdriftbs,0.3581120743634352,0.1085812795333924,FALSE,7,per_cell_wis,"adk_rwd, efm_naive, hcr_rwd, KR_arima_bc, KR_arima_log, KR_ets_bc, KR_ets_log"
+hcr_rwd,2,hcr64-rw_driftNOBS,0.35836554678609533,0.155799650879569,FALSE,7,per_cell_wis,"adk_rwd, efm_naive, hcr_rwd, KR_arima_bc, KR_arima_log, KR_ets_bc, KR_ets_log"
+KR_nnetar_bc,3,KReger-nnetar_bc_bs,0.2837674451229726,0.0861354426785651,TRUE,2,per_cell_wis,"KR_nnetar_bc, KR_nnetar_log"
+KR_nnetar_log,3,KReger-nnetar_log,0.28339255114726636,0.0924610105085372,FALSE,2,per_cell_wis,"KR_nnetar_bc, KR_nnetar_log"
+KR_tslm,4,KReger-tslm_fourier,0.4877587992662829,0.24161043357026823,TRUE,1,singleton,KR_tslm
+KR_stl_arima,5,KReger-stl_arima_bc,0.28803205681598093,0.10280154331921752,TRUE,1,singleton,KR_stl_arima
+KR_hist_wk,6,KReger-hist_week,0.4348433700940491,0.18429791777856896,TRUE,1,singleton,KR_hist_wk
+KR_bsts,7,KReger-bsts_seasonal,0.48384589184350096,0.2380456330253482,TRUE,1,singleton,KR_bsts
+atsf_meanNB,8,atsf-meannonbs,0.5948872206689177,0.27355121912552677,TRUE,2,per_cell_wis,"atsf_mean, atsf_meanNB"
+atsf_mean,8,atsf-meanbs,0.6549552564423217,0.20219480851963553,FALSE,2,per_cell_wis,"atsf_mean, atsf_meanNB"
+delphi_epi,9,delphi-epicast,0.310822192258223,0.13776931389242972,TRUE,1,singleton,delphi_epi
+slm_naive,10,slm854-naivebs,0.3939287388492711,0.13551120940329683,TRUE,1,singleton,slm_naive
