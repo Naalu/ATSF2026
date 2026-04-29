@@ -1,0 +1,27 @@
+team_name: Reger
+team_abbr: KReger
+model_name: Regime-Conditional BMA Ensemble (Wider Pool)
+model_abbr: bma_ensemble
+model_contributors:
+- name: Karl Reger
+  affiliation: Northern Arizona University
+  email: kcr28@nau.edu
+license: CC-BY-4.0
+designated_model: yes
+data_inputs: ILI%
+methods: Regime-conditional Bayesian Model Averaging (BMA) ensemble of 10 models,
+  with weights derived via log-score BMA on validation seasons.
+methods_long: 'A regime-conditional Bayesian Model Averaging (BMA) ensemble that combines
+  10 component models via per-regime softmax-weighted linear pooling of quantile values.
+  Component models include 7 KReger submissions (nnetar_bc_bs, stl_arima_bc, arima_bc_bs,
+  hist_week, bsts_seasonal, tslm_fourier, snaive_bc_bs), the CMU Delphi Epicast research-grade
+  benchmark, and 2 classmate-submitted baselines (slm854-naivebs, atsf-meannonbs).
+  The component pool was selected by hierarchical clustering of validation-period
+  point-forecast error correlations (threshold 0.93, complete linkage), with per-cluster
+  survivors chosen by per-(horizon, regime) WIS dominance. Per-regime weights computed
+  via softmax of negative validation WIS at temperature tau = 0.050 (LOO-tuned). Three
+  regimes are classified per (origin_date, location): growing, declining, peaking
+  (off-season absent in validation). Weights frozen on validation; applied unchanged
+  to test seasons. LOO-CV WIS = 614 (best of 4 ensemble configurations evaluated).'
+ensemble_of_models: yes
+ensemble_of_hub_models: yes

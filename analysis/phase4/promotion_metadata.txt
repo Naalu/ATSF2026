@@ -1,0 +1,20 @@
+Phase 5A: Ensemble promotion to model-output/
+Generated: 2026-04-28 21:36:11
+
+Source:      /Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026/analysis/phase4/staging/ensemble_bma_expanded
+Destination: /Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026/model-output/KReger-bma_ensemble
+
+Winner from Phase 4D:
+# A tibble: 4 × 7
+  cell           pool          method loo_total_wis n_cells mean_wis ranking
+  <chr>          <chr>         <chr>          <dbl>   <dbl>    <dbl>   <dbl>
+1 BMA-expanded   expanded (10) BMA             614.    2508    0.245       1
+2 BMA-primary    primary (8)   BMA             630.    2508    0.251       2
+3 Equal-primary  primary (8)   Equal           732.    2508    0.292       3
+4 Equal-expanded expanded (10) Equal           751.    2508    0.299       4
+
+Files promoted: 134
+Metadata:       /Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026/model-metadata/KReger-bma_ensemble.yml
+
+Spot-check CSV: 2015-10-24-KReger-bma_ensemble.csv
+All hub-format checks: PASSED
