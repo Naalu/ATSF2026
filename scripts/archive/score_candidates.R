@@ -54,7 +54,7 @@
 #
 # HOW TO RUN:
 #   # From project root:
-#   setwd("/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026")
+#   setwd("<path-to-ATSF2026-repo>")
 #   source("scripts/score_candidates.R")
 #
 #   Runtime: ~1-2 minutes. Bottleneck is reading 627 CSVs; scoring itself
@@ -88,7 +88,7 @@ suppressPackageStartupMessages({
 # ============================================================================
 
 # Path constants. Edit if running on a different machine or layout.
-HUB_PATH        <- "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026"
+HUB_PATH        <- normalizePath(".", mustWork = FALSE)
 TARGET_DATA     <- file.path(HUB_PATH, "target-data", "time-series.csv")
 MODEL_OUTPUT    <- file.path(HUB_PATH, "model-output")
 ANALYSIS_DIR    <- file.path(HUB_PATH, "analysis", "phase2")

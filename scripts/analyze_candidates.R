@@ -41,7 +41,7 @@ cat("==========================================================\n\n")
 # ---------------------------------------------------------------------------
 
 # Path to the ATSF2026 repo root
-hub_path <- "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026"
+hub_path <- normalizePath(".", mustWork = FALSE)
 
 # Team abbreviation
 team_abbr <- "KReger"

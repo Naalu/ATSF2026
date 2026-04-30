@@ -27,7 +27,7 @@ config <- list(
   model_abbr = "hist_week",
   
   # ---- Paths ----
-  hub_path = "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026",
+  hub_path = normalizePath(".", mustWork = FALSE),
   
   # ---- Simulation settings ----
   # 1000 resampled values per location-horizon gives smooth quantile estimates.

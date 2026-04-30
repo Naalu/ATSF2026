@@ -23,7 +23,7 @@ config <- list(
   model_abbr = "ets_log",
   
   # ---- Paths ----
-  hub_path = "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026",
+  hub_path = normalizePath(".", mustWork = FALSE),
   
   # ---- Simulation settings ----
   n_sims = 1000,

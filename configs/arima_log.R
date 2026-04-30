@@ -60,7 +60,7 @@ config <- list(
   model_abbr = "arima_log",       # 9 chars, well within hub's 15-char limit
 
   # ---- Paths ----
-  hub_path = "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026",
+  hub_path = normalizePath(".", mustWork = FALSE),
 
   # ---- Simulation settings ----
   # 1000 sims matches arima_bc_bs and the rest of the bootstrap-based

@@ -136,7 +136,7 @@ config <- list(
   # Absolute path to the local clone of the ATSF2026 repo. Edit if you move
   # the repo or run on another machine. Once the model is final, this gets
   # parameterized for the README_submission reproducibility step (Phase 5A).
-  hub_path = "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026",
+  hub_path = normalizePath(".", mustWork = FALSE),
 
   # ---- Simulation settings ----
   # n_sims is the number of posterior predictive draws we keep for each

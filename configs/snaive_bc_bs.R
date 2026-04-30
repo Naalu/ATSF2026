@@ -32,7 +32,7 @@ config <- list(
   
   # ---- Paths ----
   # Root of the local ATSF2026 repo clone. All other paths derived from this.
-  hub_path = "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026",
+  hub_path = normalizePath(".", mustWork = FALSE),
   
   # ---- Simulation settings ----
   # 1000 gives >=10 obs in each tail for the 0.01/0.99 quantiles.

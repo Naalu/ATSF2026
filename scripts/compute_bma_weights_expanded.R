@@ -44,7 +44,7 @@
 #   - bma_weights_expanded_metadata.txt        (run details)
 #
 # HOW TO RUN:
-#   setwd("/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026")
+#   setwd("<path-to-ATSF2026-repo>")
 #   source("scripts/compute_bma_weights_expanded.R")
 #
 #   Runtime: ~1-2 minutes (similar to Phase 3A).
@@ -73,7 +73,7 @@ suppressPackageStartupMessages({
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-HUB_PATH       <- "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026"
+HUB_PATH       <- normalizePath(".", mustWork = FALSE)
 TARGET_DATA    <- file.path(HUB_PATH, "target-data", "time-series.csv")
 MODEL_OUTPUT   <- file.path(HUB_PATH, "model-output")
 

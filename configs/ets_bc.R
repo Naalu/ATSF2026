@@ -54,7 +54,7 @@ config <- list(
   model_abbr = "ets_bc",          # 6 chars, well within 15-char limit
 
   # ---- Paths ----
-  hub_path = "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026",
+  hub_path = normalizePath(".", mustWork = FALSE),
 
   # ---- Simulation settings ----
   n_sims = 1000L,

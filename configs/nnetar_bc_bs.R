@@ -41,7 +41,7 @@ config <- list(
   model_abbr = "nnetar_bc_bs",   # 12 chars, within 15-char limit
 
   # ---- Paths ----
-  hub_path = "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026",
+  hub_path = normalizePath(".", mustWork = FALSE),
 
   # ---- Simulation settings ----
   # 1000 for production. NNETAR simulation is slower than linear models

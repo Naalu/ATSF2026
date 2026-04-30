@@ -27,11 +27,11 @@
 #
 # HOW TO RUN:
 #   # From the project root in an R session:
-#   setwd("/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026")
+#   setwd("<path-to-ATSF2026-repo>")
 #   source("scripts/run_bsts_validation.R")
 #
 #   # OR from the shell:
-#   cd "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026"
+#   cd "<path-to-ATSF2026-repo>"
 #   Rscript scripts/run_bsts_validation.R
 #
 # RESUMABILITY:

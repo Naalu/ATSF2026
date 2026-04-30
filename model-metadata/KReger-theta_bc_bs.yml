@@ -1,0 +1,18 @@
+team_name: "Reger"
+team_abbr: "KReger"
+model_name: "Theta Method with Box-Cox and Bootstrap"
+model_abbr: "theta_bc_bs"
+designated_model: false
+model_contributors: [
+  {
+    "name": "Karl Reger",
+    "affiliation": "Northern Arizona University",
+    "email": "kcr28@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: "ILI%"
+methods: "Theta method (M3 competition winner) with Box-Cox stabilization and bootstrapped prediction intervals via fable generate()."
+methods_long: "Uses fable's THETA() method, which decomposes the series into theta lines and combines SES with drift on the seasonally adjusted series. Box-Cox transformation (lambda via guerrero per location) stabilizes variance. Prediction intervals from 1000 bootstrapped residual paths via fable generate(bootstrap=TRUE). Empirical quantiles at 23 levels. Values floored at zero for non-negativity."
+ensemble_of_models: false
+ensemble_of_hub_models: false

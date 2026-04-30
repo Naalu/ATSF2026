@@ -62,7 +62,7 @@
 #   - generate_ensembles_matrix_metadata.txt         (run details)
 #
 # HOW TO RUN:
-#   setwd("/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026")
+#   setwd("<path-to-ATSF2026-repo>")
 #   source("scripts/generate_ensembles_matrix.R")
 #
 #   Runtime: ~5-8 minutes. Bottleneck: 4 LOO matrices x 57 folds each.
@@ -92,7 +92,7 @@ suppressPackageStartupMessages({
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-HUB_PATH       <- "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026"
+HUB_PATH       <- normalizePath(".", mustWork = FALSE)
 TARGET_DATA    <- file.path(HUB_PATH, "target-data", "time-series.csv")
 TASKS_JSON     <- file.path(HUB_PATH, "hub-config", "tasks.json")
 MODEL_OUTPUT   <- file.path(HUB_PATH, "model-output")

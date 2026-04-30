@@ -23,7 +23,7 @@
 # REQUIREMENTS:
 #   - R >= 4.3 with packages: tidyverse, fpp3, scoringutils, bsts,
 #     hubValidations, fable, fabletools, tsibble
-#   - Working directory: project root
+#   - Working directory: project root (drivers verify this)
 #   - Inputs:
 #       target-data/oracle-output.csv
 #       hub-config/tasks.json
@@ -48,16 +48,26 @@ cat("\n",
     "===========================================================\n",
     sep = "")
 
-# Sanity check — must run from project root
+# Sanity check — must run from project root (paths in sourced scripts
+# resolve to getwd(), so this matters)
 if (!file.exists("hub-config/tasks.json")) {
   stop("This script must be run from the project root (where hub-config/ lives).")
 }
 
 # Helper: run a phase script with timing
-run_phase <- function(phase_label, script_path) {
+# config_path: optional config to pass via CONFIG_PATH variable (used by
+# Phase 1 scripts run_validation.R and run_test.R, which require a config)
+run_phase <- function(phase_label, script_path, config_path = NULL) {
   cat(sprintf("\n>>> %s — %s <<<\n", phase_label, script_path))
   cat(sprintf("    started: %s\n",
               format(Sys.time(), "%Y-%m-%d %H:%M:%S")))
+  
+  # Set CONFIG_PATH in the global env if requested. Phase 1 scripts look
+  # for this variable and error out if it's not set.
+  if (!is.null(config_path)) {
+    assign("CONFIG_PATH", config_path, envir = .GlobalEnv)
+    cat(sprintf("    config: %s\n", config_path))
+  }
   
   t0 <- Sys.time()
   tryCatch(
@@ -65,6 +75,12 @@ run_phase <- function(phase_label, script_path) {
     error = function(e) {
       cat(sprintf("    FAILED: %s\n", e$message))
       stop(sprintf("Phase %s failed. See error above.", phase_label))
+    },
+    finally = {
+      # Clear CONFIG_PATH after the phase to avoid contaminating later phases
+      if (!is.null(config_path) && exists("CONFIG_PATH", envir = .GlobalEnv)) {
+        rm("CONFIG_PATH", envir = .GlobalEnv)
+      }
     }
   )
   t1 <- Sys.time()
@@ -76,11 +92,16 @@ run_phase <- function(phase_label, script_path) {
 # -----------------------------------------------------------------------------
 # PHASE 1 — Baseline submission (KReger-snaive_bc_bs)
 # -----------------------------------------------------------------------------
-# Generates the original assigned-model baseline. This is what was submitted
-# in the early proposal phase before ensemble work began.
+# Generates the original assigned-model baseline using the generic Phase 1
+# drivers. Both run_validation.R and run_test.R need a CONFIG_PATH set
+# (the engine is generic — same drivers, different configs run different models).
 # -----------------------------------------------------------------------------
-run_phase("Phase 1A — Baseline validation forecasts", "scripts/run_validation.R")
-run_phase("Phase 1B — Baseline test forecasts",       "scripts/run_test.R")
+run_phase("Phase 1A — Baseline validation forecasts",
+          "scripts/run_validation.R",
+          config_path = "configs/snaive_bc_bs.R")
+run_phase("Phase 1B — Baseline test forecasts",
+          "scripts/run_test.R",
+          config_path = "configs/snaive_bc_bs.R")
 
 # -----------------------------------------------------------------------------
 # PHASE 2 — Candidate model generation and scoring

@@ -1,5 +1,5 @@
 Phase 5A: Ensemble promotion to model-output/
-Generated: 2026-04-28 21:36:11
+Generated: 2026-04-29 22:32:43
 
 Source:      /Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026/analysis/phase4/staging/ensemble_bma_expanded
 Destination: /Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026/model-output/KReger-bma_ensemble

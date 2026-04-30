@@ -41,7 +41,7 @@
 #   - Console output: per-pair verdict summary.
 #
 # HOW TO RUN:
-#   setwd("/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026")
+#   setwd("<path-to-ATSF2026-repo>")
 #   source("scripts/twin_diagnostics.R")
 #
 #   Runtime: ~1-2 min, dominated by regime calibration's slope cloud.
@@ -70,7 +70,7 @@ source("scripts/regime_helpers.R")
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-HUB_PATH      <- "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026"
+HUB_PATH      <- normalizePath(".", mustWork = FALSE)
 TARGET_DATA   <- file.path(HUB_PATH, "target-data", "time-series.csv")
 SCORES_LONG   <- file.path(HUB_PATH, "analysis", "phase2", "scores_long.csv")
 ANALYSIS_DIR  <- file.path(HUB_PATH, "analysis", "phase2")

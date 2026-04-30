@@ -30,7 +30,7 @@ suppressPackageStartupMessages({
 
 source("scripts/forecast_helpers.R")
 
-hub_path <- "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026"
+hub_path <- normalizePath(".", mustWork = FALSE)
 team_abbr <- "KReger"
 
 # Create output directory

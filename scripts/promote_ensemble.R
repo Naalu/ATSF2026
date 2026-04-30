@@ -44,7 +44,7 @@
 #   - analysis/phase4/promotion_metadata.txt          (run details)
 #
 # HOW TO RUN:
-#   setwd("/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026")
+#   setwd("<path-to-ATSF2026-repo>")
 #   source("scripts/promote_ensemble.R")
 #
 #   Runtime: ~30 seconds (file I/O for 134 CSVs).
@@ -78,7 +78,7 @@ suppressPackageStartupMessages({
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-HUB_PATH       <- "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026"
+HUB_PATH       <- normalizePath(".", mustWork = FALSE)
 PHASE4_DIR     <- file.path(HUB_PATH, "analysis", "phase4")
 
 # Source: the winning ensemble's staging directory (Phase 4D result).

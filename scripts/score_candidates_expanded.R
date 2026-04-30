@@ -41,7 +41,7 @@
 #   - scores_metadata_expanded.txt             (run timestamp + versions)
 #
 # HOW TO RUN:
-#   setwd("/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026")
+#   setwd("<path-to-ATSF2026-repo>")
 #   source("scripts/score_candidates_expanded.R")
 #
 #   Runtime: ~3-4 minutes. Bottleneck is reading 17 * 57 = 969 CSVs.
@@ -69,7 +69,7 @@ suppressPackageStartupMessages({
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-HUB_PATH       <- "/Users/chrisreger/Documents/NAU/Grad/Informatics/INF 599 TS/Project/ATSF2026"
+HUB_PATH       <- normalizePath(".", mustWork = FALSE)
 TARGET_DATA    <- file.path(HUB_PATH, "target-data", "time-series.csv")
 MODEL_OUTPUT   <- file.path(HUB_PATH, "model-output")
 PHASE4_DIR     <- file.path(HUB_PATH, "analysis", "phase4")
