@@ -94,11 +94,11 @@ run_phase("Phase 2A — Generate all candidate forecasts",
 run_phase("Phase 2B — bsts candidate (long-running)",
           "scripts/run_bsts_validation.R")
 run_phase("Phase 2C — Score candidates on validation",
-          "scripts/score_candidates.R")
+          "scripts/archive/score_candidates.R")
 run_phase("Phase 2D — Analyze candidates (correlations, regimes)",
           "scripts/analyze_candidates.R")
 run_phase("Phase 2E — Twin-pair diagnostics (primary 8-model selection)",
-          "scripts/twin_diagnostics.R")
+          "scripts/archive/twin_diagnostics.R")
 
 # -----------------------------------------------------------------------------
 # PHASE 3 — Primary pool BMA weights and ensemble
@@ -108,9 +108,9 @@ run_phase("Phase 2E — Twin-pair diagnostics (primary 8-model selection)",
 # submission scope.
 # -----------------------------------------------------------------------------
 run_phase("Phase 3A — Primary pool BMA weights",
-          "scripts/compute_bma_weights.R")
+          "scripts/archive/compute_bma_weights.R")
 run_phase("Phase 3B — Primary pool ensemble generation",
-          "scripts/generate_ensemble.R")
+          "scripts/archive/generate_ensemble.R")
 
 # -----------------------------------------------------------------------------
 # PHASE 4 — Expanded pool (with classmate submissions and delphi-epicast)
@@ -140,16 +140,14 @@ run_phase("Phase 5A — Promote BMA-expanded to model-output/",
           "scripts/promote_ensemble.R")
 
 # -----------------------------------------------------------------------------
-# PHASE 5D-E — Diagnostics (validation coverage + test scoring)
+# PHASE 5E — Validation prediction interval coverage
 # -----------------------------------------------------------------------------
-# These do not affect the submission but produce supporting evidence:
-# prediction interval calibration on validation, leaderboard against the
-# rest of the class on test, and a four-cell test-set evaluation.
+# Validation-only diagnostic: 50% / 95% empirical PI coverage for each of the
+# four ensembles. Supports the report's PIC discussion in §3.
+#
+# Note: test-period evaluation is not run from this driver. Test-set scoring
+# is reserved for the instructor.
 # -----------------------------------------------------------------------------
-run_phase("Phase 5D — Test-set evaluation (4-cell)",
-          "scripts/score_test_set.R")
-run_phase("Phase 5D — Test-set leaderboard (vs all hub models)",
-          "scripts/score_test_leaderboard.R")
 run_phase("Phase 5E — Validation prediction interval coverage",
           "scripts/score_validation_coverage.R")
 

@@ -9,25 +9,26 @@ Sandbox Hub. Submitted as `KReger-bma_ensemble`.
 
 ## Headline result
 
-The submission ranks **first among all 20 evaluated models** on the
-test seasons (2017–2020), with a mean weighted Interval Score (WIS)
-of 0.438:
+On a 4-cell validation comparison (BMA vs equal-weight × primary
+8-model pool vs expanded 10-model pool), the BMA-expanded ensemble
+won by every margin that mattered:
 
-| Rank | Model | Mean WIS | N |
-|---:|---|---:|---:|
-| **1** | **KReger-bma_ensemble** | **0.438** | 3,388 |
-| 2 | KReger-stl_arima_bc (best component) | 0.440 | 3,388 |
-| 3 | delphi-epicast (CMU research benchmark) | 0.457 | 3,348 |
-| 4 | KReger-arima_bc_bs | 0.553 | 3,388 |
-| 5 | KReger-nnetar_bc_bs | 0.575 | 3,388 |
-| ... | (15 more) | ... | ... |
+| Cell | Pool | Method | LOO total WIS | Mean WIS |
+|---|---|---|---:|---:|
+| **BMA-expanded**    | expanded (10) | BMA   | **614.0** | **0.245** |
+| BMA-primary         | primary (8)   | BMA   | 630.3 | 0.251 |
+| Equal-primary       | primary (8)   | Equal | 732.3 | 0.292 |
+| Equal-expanded      | expanded (10) | Equal | 750.6 | 0.299 |
 
-The BMA-expanded ensemble beats the next-best classmate submission
-(`efm-NAIVEnobs` at 0.642) by 32%.
+*Validation: leave-one-date-out cross-validation across 2,508 forecast
+cells (57 origin dates × 11 locations × 4 horizons + quantile
+aggregation). Test-period evaluation reserved for the instructor.*
 
-On validation (LOO-CV total WIS), the same submission was the winner
-of a 4-cell comparison matrix: BMA vs equal-weight × primary
-(8-model KReger-only) vs expanded (10-model with classmate additions).
+The BMA-expanded ensemble beats equal-weight aggregation by 14% on
+the primary pool and 18% on the expanded pool, leads in every regime
+(growing, declining, peaking), and improves on its best individual
+component (KReger-nnetar_bc_bs at validation mean WIS 0.284) by
+13.7%.
 
 The full report is `docs/final_report.pdf` (3 pages + references).
 
@@ -46,7 +47,7 @@ The full report is `docs/final_report.pdf` (3 pages + references).
 │   ├── reproduce_final.R           Driver: final assembly only
 │   ├── forecast_helpers.R          Phase 1 helpers
 │   ├── run_validation.R            Phase 1: baseline validation
-│   ├── run_test.R                  Phase 1: baseline test
+│   ├── run_test.R                  Phase 1: baseline test forecasts
 │   ├── run_all_candidates.R        Phase 2: candidate generation
 │   ├── run_bsts_validation.R       Phase 2: bsts (long-running)
 │   ├── score_candidates_expanded.R Phase 4: score 20-model pool
@@ -54,18 +55,14 @@ The full report is `docs/final_report.pdf` (3 pages + references).
 │   ├── compute_bma_weights_expanded.R   Phase 4: BMA weight estimation
 │   ├── generate_ensembles_matrix.R Phase 4: 4-cell comparison
 │   ├── promote_ensemble.R          Phase 5: promotion to model-output/
-│   ├── score_test_set.R            Phase 5D: test-set 4-cell scoring
-│   ├── score_test_leaderboard.R    Phase 5D: cross-model leaderboard
-│   ├── score_validation_coverage.R Phase 5E: PI coverage
+│   ├── score_validation_coverage.R Phase 5: validation PI coverage
 │   ├── regime_helpers.R            Phase 2 helper: regime classifier
 │   └── archive/                    Superseded earlier-phase scripts
 ├── analysis/                       Intermediate artifacts
 │   ├── phase2/decisions.md         Phase 2 decision log
 │   ├── phase4/matrix_loo_comparison.csv     Validation 4-cell matrix
 │   ├── phase4/weights_log_score_bma_expanded.csv  BMA weights (frozen)
-│   ├── phase4/test_evaluation_summary.csv   Test 4-cell evaluation
-│   ├── phase4/test_leaderboard.csv          Cross-model leaderboard
-│   ├── phase4/validation_coverage.csv       PI coverage (50%, 95%)
+│   ├── phase4/validation_coverage.csv       Validation PI coverage
 │   └── phase4/staging/             Per-ensemble staged forecasts
 ├── model-output/                   Submitted forecasts (mirrors hub)
 │   ├── KReger-bma_ensemble/        ← The designated submission (134 CSVs)
@@ -148,7 +145,7 @@ Five phases produce the submission:
 2. **Candidates** — Generate 11 KReger candidate models, score, prune for diversity into a primary 8-model pool.
 3. **Primary BMA** — Compute regime-conditional BMA weights and ensemble.
 4. **Expanded pool** — Add 9 hub-submitted models, re-prune to 10, generate all four ensembles (BMA × {primary, expanded} and Equal × {primary, expanded}) for comparison.
-5. **Submission** — Promote the winning BMA-expanded ensemble to `model-output/` and run test-set diagnostics.
+5. **Submission** — Promote the winning BMA-expanded ensemble to `model-output/` and validate.
 
 Detailed per-script documentation is in [`scripts/README.md`](scripts/README.md).
 The Phase 2 decision log is at [`analysis/phase2/decisions.md`](analysis/phase2/decisions.md).
