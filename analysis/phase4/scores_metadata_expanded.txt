@@ -1,0 +1,34 @@
+Phase 4A: expanded candidate scoring run
+Generated: 2026-04-28 11:29:01
+R version: R version 4.5.2 (2025-10-31)
+scoringutils: 2.2.0
+
+Candidates (20 total):
+  KReger (11):
+    - KReger-snaive_bc_bs
+    - KReger-ets_log
+    - KReger-arima_bc_bs
+    - KReger-nnetar_bc_bs
+    - KReger-tslm_fourier
+    - KReger-stl_arima_bc
+    - KReger-hist_week
+    - KReger-bsts_seasonal
+    - KReger-ets_bc
+    - KReger-arima_log
+    - KReger-nnetar_log
+  Upstream (9):
+    - adk-rwdriftbs
+    - ata266-snaivenonbs
+    - atsf-meanbs
+    - atsf-meannonbs
+    - delphi-epicast
+    - efm-NAIVEnobs
+    - hcr64-rw_driftNOBS
+    - slm854-naivebs
+    - syed-snaivebs
+
+Validation cutoff: 2017-05-06
+Total forecast rows scored: 50160
+
+Note: KReger-theta_bc_bs and hist-avg deliberately excluded.
+See analysis/phase2/decisions.md and Phase 4 design discussion.

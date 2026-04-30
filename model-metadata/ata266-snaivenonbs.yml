@@ -1,0 +1,18 @@
+team_name: "ata266"
+team_abbr: "ata266"
+model_name: "snaivenonbs"
+model_abbr: "snaivenonbs"
+designated_model: true
+model_contributors: [
+  {
+    "name": "Aziz AlShamsi",
+    "affiliation": "Northern Arizona University",
+    "email": "ata266@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: ILI%
+methods: Forecasts based on the seasonal naive model use non-bootstrapped residuals for producing forecast uncertainty. 
+methods_long: Uses the snaive() function in the fable package to make forecasts and then generates non-bootstrapped prediction intervals from the residuals using the generate() function in fable.
+ensemble_of_models: false
+ensemble_of_hub_models: false

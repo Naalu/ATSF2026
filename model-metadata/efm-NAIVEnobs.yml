@@ -1,0 +1,19 @@
+team_name: "efm"
+team_abbr: "efm"
+model_name: "NAIVEnobs"
+model_abbr: "NAIVEnobs"
+designated_model: true
+model_contributors: [
+  {
+    "name": "Ely Miller",
+    "affiliation": "Northern Arizona University",
+    "email": "efinn2019@gmail.com",
+    "orcid": "0000-0003-3480-8377"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: ILI%
+methods: Forecasts based on the most recent historic data point and does not use bootstrapped residuals for producing forecast uncertainty. 
+methods_long: Uses the NAIVE() function in the fable package to make forecasts.
+ensemble_of_models: false
+ensemble_of_hub_models: false

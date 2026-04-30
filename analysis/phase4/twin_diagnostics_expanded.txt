@@ -1,0 +1,29 @@
+Phase 4B v2: twin-pair pruning of expanded candidate pool
+Generated: 2026-04-28 12:18:28
+
+Methodology:
+  Distance:          1 - Pearson cor of point-forecast errors
+  Twin threshold:    0.93 (cut at distance = 0.07)
+  Survivor:          per-(horizon, regime) cell winner count
+  Tiebreak:          mean dispersion (Phase 2 methodology)
+  Cell win margin:   2% relative WIS
+
+Linkage method comparison:
+  single   : 10 total (KReger 7/11, Upstream 3/9)
+  complete : 10 total (KReger 7/11, Upstream 3/9) <- OFFICIAL
+  average  : 10 total (KReger 7/11, Upstream 3/9)
+
+OFFICIAL shortlist (complete linkage):
+# A tibble: 10 × 4
+   model_label  model                  wis cluster_size
+   <chr>        <chr>                <dbl>        <int>
+ 1 KR_nnetar_bc KReger-nnetar_bc_bs  0.284            2
+ 2 KR_stl_arima KReger-stl_arima_bc  0.288            1
+ 3 KR_arima_bc  KReger-arima_bc_bs   0.299            7
+ 4 delphi_epi   delphi-epicast       0.311            1
+ 5 slm_naive    slm854-naivebs       0.394            1
+ 6 KR_hist_wk   KReger-hist_week     0.435            1
+ 7 KR_bsts      KReger-bsts_seasonal 0.484            1
+ 8 KR_tslm      KReger-tslm_fourier  0.488            1
+ 9 atsf_meanNB  atsf-meannonbs       0.595            2
+10 KR_snaive_bc KReger-snaive_bc_bs  0.626            3

@@ -1,0 +1,18 @@
+team_name: "slm854"
+team_abbr: "slm854"
+model_name: "naivebs"
+model_abbr: "naivebs"
+designated_model: true
+model_contributors: [
+  {
+    "name": "Sarah Maughan",
+    "affiliation": "Northern Arizona University",
+    "email": "slm854@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: ILI%
+methods: Forecasts based on the most recent historic data point that uses bootstrapped residuals for producing forecast uncertainty. 
+methods_long: Uses the NAIVE() function in the fable package to make forecasts.
+ensemble_of_models: false
+ensemble_of_hub_models: false

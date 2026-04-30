@@ -1,0 +1,13 @@
+regime,mean_wis,n_cells,method
+declining,0.1932956253937781,804,BMA-primary    
+growing,0.27340017866819066,1384,BMA-primary    
+peaking,0.3015566203558772,320,BMA-primary    
+declining,0.22276486539839901,804,Equal-primary  
+growing,0.3204747934753991,1384,Equal-primary  
+peaking,0.34271792418335545,320,Equal-primary  
+declining,0.18680535567650822,804,BMA-expanded   
+growing,0.26730005559702,1384,BMA-expanded   
+peaking,0.2932786838129959,320,BMA-expanded   
+declining,0.23351074383312023,804,Equal-expanded 
+growing,0.32533891969366224,1384,Equal-expanded 
+peaking,0.3518487466712386,320,Equal-expanded 

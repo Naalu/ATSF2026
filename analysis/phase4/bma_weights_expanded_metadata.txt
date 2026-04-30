@@ -1,0 +1,29 @@
+Phase 4C: BMA weight comparison (expanded ensemble)
+Generated: 2026-04-28 12:26:19
+R version: R version 4.5.2 (2025-10-31)
+scoringutils: 2.2.0
+quadprog: 1.5.8
+
+Ensemble models (10):
+  -KReger-nnetar_bc_bs (KR_nnetar_bc)
+  -KReger-stl_arima_bc (KR_stl_arima)
+  -KReger-arima_bc_bs (KR_arima_bc)
+  -delphi-epicast (delphi_epi)
+  -slm854-naivebs (slm_naive)
+  -KReger-hist_week (KR_hist_wk)
+  -KReger-bsts_seasonal (KR_bsts)
+  -KReger-tslm_fourier (KR_tslm)
+  -atsf-meannonbs (atsf_meanNB)
+  -KReger-snaive_bc_bs (KR_snaive_bc)
+
+LOO-CV results:
+# A tibble: 3 × 3
+  method        loo_wis ranking
+  <chr>           <dbl>   <int>
+1 log_score_bma    625.       1
+2 stacking         662.       2
+3 inverse_wis      698.       3
+
+Winner: log_score_bma
+Best tau (log-score BMA): 0.050
+Inverse-WIS beta: 1.000

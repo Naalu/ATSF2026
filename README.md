@@ -1,32 +1,176 @@
-# FluSight ILI Sandbox Hub Template
+# FluCast: A Regime-Conditional BMA Ensemble for ILI Forecasting
 
-A template of a Sandbox hub of forecasts based on the original [FluSight Challenge](https://github.com/cdcepi/FluSight-forecasts) run by the CDC. All data and the repository structure have been formatted according to [hubverse](https://hubverse.io/) standards.
+**Karl Reger** • INF 599 Final Project • Northern Arizona University
 
-The purpose of this hub is to provide a sandbox environment for training, research or benchmarking purposes.
+This repository contains the FluCast forecasting project: a
+regime-conditional Bayesian Model Averaging (BMA) ensemble for
+weighted influenza-like-illness (wILI) forecasts on the FluSight ILI
+Sandbox Hub. Submitted as `KReger-bma_ensemble`.
 
-## Short-term forecasts of outpatient influenza-like illness (ILI) cases
+## Headline result
 
-Predictions are quantile forecasts of weighted influenza-like illness (ILI) percentage, converted from the original CDF forecasts for the same target. This hub is set up to receive new forecast submissions for educational purposes.
+The submission ranks **first among all 20 evaluated models** on the
+test seasons (2017–2020), with a mean weighted Interval Score (WIS)
+of 0.438:
 
-**Dates:** The Challenge Period ran for five respiratory virus seasons (2015-2019). Forecasts may be submitted for any of the original submission dates.
+| Rank | Model | Mean WIS | N |
+|---:|---|---:|---:|
+| **1** | **KReger-bma_ensemble** | **0.438** | 3,388 |
+| 2 | KReger-stl_arima_bc (best component) | 0.440 | 3,388 |
+| 3 | delphi-epicast (CMU research benchmark) | 0.457 | 3,348 |
+| 4 | KReger-arima_bc_bs | 0.553 | 3,388 |
+| 5 | KReger-nnetar_bc_bs | 0.575 | 3,388 |
+| ... | (15 more) | ... | ... |
 
-**Prediction Targets:**
-Participants are asked to provide national and/or jurisdiction-specific (10 HHS regions) retrospective quantile forecasts for weighted ILI percentage.
+The BMA-expanded ensemble beats the next-best classmate submission
+(`efm-NAIVEnobs` at 0.642) by 32%.
 
-Modelers will submit these retrospective quantile forecasts for the epidemiological week (EW) ending on the reference dates used for the original FluSight forecasts, up to 4 weeks ahead in the future. Modelers can but are not required to submit forecasts for all four week horizons or for all locations. We will use the specification of EWs defined by the
-[CDC](https://wwwn.cdc.gov/nndss/document/MMWR_Week_overview.pdf), which run Sunday through Saturday. The target end
-date for a prediction is the Saturday that ends an EW of interest, and can be calculated using the expression:
-**target end date = reference date + horizon * (7 days)**.
+On validation (LOO-CV total WIS), the same submission was the winner
+of a 4-cell comparison matrix: BMA vs equal-weight × primary
+(8-model KReger-only) vs expanded (10-model with classmate additions).
 
-The evaluation data for forecasts will be the weighted ILI percentage collected by the US Outpatient Influenza-like Illness Surveillance Network (ILINet).
-Ground truth target data [was downloaded](target-data/get_target_data.R) using [the epidatr R package](https://cmu-delphi.github.io/epidatr/).
+The full report is `docs/final_report.pdf` (3 pages + references).
 
-There are standard software packages to convert from dates to epidemic weeks and vice versa (*e.g.*,
-[MMWRweek](https://cran.r-project.org/web/packages/MMWRweek/) and
-[lubridate](https://lubridate.tidyverse.org/reference/week.html) for R and [pymmwr](https://pypi.org/project/pymmwr/)
-and [epiweeks](https://pypi.org/project/epiweeks/) for Python).
+## Repository structure
 
-## Acknowledgments
+```
+.
+├── README.md                       (this file)
+├── docs/
+│   ├── final_report.tex            LaTeX source for the final report
+│   ├── final_report.pdf            Compiled report
+│   └── weights_heatmap.pdf         Figure 1 of the report
+├── scripts/                        Pipeline scripts (see scripts/README.md)
+│   ├── reproduce_full.R            Driver: full from-scratch reproduction
+│   ├── reproduce_smart.R           Driver: skip phases with existing outputs
+│   ├── reproduce_final.R           Driver: final assembly only
+│   ├── forecast_helpers.R          Phase 1 helpers
+│   ├── run_validation.R            Phase 1: baseline validation
+│   ├── run_test.R                  Phase 1: baseline test
+│   ├── run_all_candidates.R        Phase 2: candidate generation
+│   ├── run_bsts_validation.R       Phase 2: bsts (long-running)
+│   ├── score_candidates_expanded.R Phase 4: score 20-model pool
+│   ├── twin_diagnostics_expanded.R Phase 4: diversity pruning
+│   ├── compute_bma_weights_expanded.R   Phase 4: BMA weight estimation
+│   ├── generate_ensembles_matrix.R Phase 4: 4-cell comparison
+│   ├── promote_ensemble.R          Phase 5: promotion to model-output/
+│   ├── score_test_set.R            Phase 5D: test-set 4-cell scoring
+│   ├── score_test_leaderboard.R    Phase 5D: cross-model leaderboard
+│   ├── score_validation_coverage.R Phase 5E: PI coverage
+│   ├── regime_helpers.R            Phase 2 helper: regime classifier
+│   └── archive/                    Superseded earlier-phase scripts
+├── analysis/                       Intermediate artifacts
+│   ├── phase2/decisions.md         Phase 2 decision log
+│   ├── phase4/matrix_loo_comparison.csv     Validation 4-cell matrix
+│   ├── phase4/weights_log_score_bma_expanded.csv  BMA weights (frozen)
+│   ├── phase4/test_evaluation_summary.csv   Test 4-cell evaluation
+│   ├── phase4/test_leaderboard.csv          Cross-model leaderboard
+│   ├── phase4/validation_coverage.csv       PI coverage (50%, 95%)
+│   └── phase4/staging/             Per-ensemble staged forecasts
+├── model-output/                   Submitted forecasts (mirrors hub)
+│   ├── KReger-bma_ensemble/        ← The designated submission (134 CSVs)
+│   ├── KReger-snaive_bc_bs/        Phase 1 baseline
+│   ├── KReger-{arima,ets,nnetar,...}/   Component models
+│   └── (other classmate models for the expanded pool)
+├── model-metadata/
+│   └── KReger-bma_ensemble.yml     Submission metadata
+├── target-data/
+│   ├── oracle-output.csv           Truth data (FluSight hub format)
+│   └── time-series.csv             wILI time series
+└── hub-config/
+    ├── tasks.json                  Hub-defined origin dates and quantile levels
+    └── (other hub config)
+```
 
-This repository follows the guidelines and standards outlined by [the
-hubverse](https://hubverse.io), which provides a set of data formats and open source tools for modeling hubs.
+## How to reproduce
+
+Three reproduction paths are supported, each calling the same underlying
+phase scripts but at different scope and runtime:
+
+### 1. Full reproduction (`reproduce_full.R`)
+
+Runs the entire pipeline from raw data to the final submission. Use
+this to verify reproducibility from inputs alone with no shortcuts.
+
+```bash
+Rscript scripts/reproduce_full.R
+```
+
+Runtime: **6–12 hours** (dominated by candidate scoring and bsts MCMC).
+Phases run unconditionally regardless of whether outputs already exist.
+
+### 2. Smart reproduction (`reproduce_smart.R`) — recommended
+
+Same pipeline, but skips phases whose sentinel output files already
+exist. If you've cloned this repo (which has all intermediate artifacts
+checked in), this completes in minutes.
+
+```bash
+Rscript scripts/reproduce_smart.R
+```
+
+Runtime: **minutes if intermediates exist; same as full if cold**.
+
+To force a single phase to re-run, delete its sentinel output (the
+script reports each phase's sentinel) and re-run the driver.
+
+### 3. Final assembly (`reproduce_final.R`)
+
+Skips directly to the final promotion step using existing intermediate
+artifacts. Useful for spot-checking that intermediate artifacts produce
+the expected submission CSVs.
+
+```bash
+Rscript scripts/reproduce_final.R
+```
+
+Runtime: **~30 seconds**.
+
+## Requirements
+
+- **R ≥ 4.3** with packages: `tidyverse`, `fpp3`, `scoringutils ≥ 2.x`,
+  `bsts`, `hubValidations`, `fable`, `fabletools`, `tsibble`,
+  `purrr`, `readr`
+- Working directory: project root
+
+To install:
+
+```r
+install.packages(c("tidyverse", "fpp3", "scoringutils", "bsts",
+                   "hubValidations", "fable", "fabletools", "tsibble"))
+```
+
+## Pipeline overview
+
+Five phases produce the submission:
+
+1. **Baseline** — Generate the assigned-model baseline (KReger-snaive_bc_bs).
+2. **Candidates** — Generate 11 KReger candidate models, score, prune for diversity into a primary 8-model pool.
+3. **Primary BMA** — Compute regime-conditional BMA weights and ensemble.
+4. **Expanded pool** — Add 9 hub-submitted models, re-prune to 10, generate all four ensembles (BMA × {primary, expanded} and Equal × {primary, expanded}) for comparison.
+5. **Submission** — Promote the winning BMA-expanded ensemble to `model-output/` and run test-set diagnostics.
+
+Detailed per-script documentation is in [`scripts/README.md`](scripts/README.md).
+The Phase 2 decision log is at [`analysis/phase2/decisions.md`](analysis/phase2/decisions.md).
+
+## Key methodological choices
+
+- **Diversity pruning via hierarchical clustering** of the validation-period point-forecast error correlation matrix (complete linkage at threshold 1−0.93)
+- **Regime-conditional BMA weighting** with three regimes (growing, declining, peaking) classified via a 4-step priority cascade
+- **Softmax of negative WIS at τ=0.050** (LOO-tuned), preferred over inverse-WIS and stacking
+- **Validation-only frozen weights** to prevent test-period leakage
+- **No-floor weight allocation** — the softmax discounts weak components without zeroing them out
+
+The full methodology is in `docs/final_report.pdf`.
+
+## Author
+
+**Karl Reger** • [kcr28@nau.edu](mailto:kcr28@nau.edu)
+INF 599, Spring 2026
+Northern Arizona University
+
+Submission PR: [sjfox/ATSF2026#18](https://github.com/sjfox/ATSF2026/pull/18)
+
+## License
+
+Coursework submitted for INF 599 at Northern Arizona University.

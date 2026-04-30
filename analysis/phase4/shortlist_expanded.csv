@@ -1,0 +1,11 @@
+cluster,model_label,model,wis,wis_disp,cluster_size,cluster_members
+3,KR_nnetar_bc,KReger-nnetar_bc_bs,0.2837674451229726,0.0861354426785651,2,"KR_nnetar_bc, KR_nnetar_log"
+5,KR_stl_arima,KReger-stl_arima_bc,0.28803205681598093,0.10280154331921752,1,KR_stl_arima
+2,KR_arima_bc,KReger-arima_bc_bs,0.2990851463568473,0.129410147630693,7,"adk_rwd, efm_naive, hcr_rwd, KR_arima_bc, KR_arima_log, KR_ets_bc, KR_ets_log"
+9,delphi_epi,delphi-epicast,0.310822192258223,0.13776931389242972,1,delphi_epi
+10,slm_naive,slm854-naivebs,0.3939287388492711,0.13551120940329683,1,slm_naive
+6,KR_hist_wk,KReger-hist_week,0.4348433700940491,0.18429791777856896,1,KR_hist_wk
+7,KR_bsts,KReger-bsts_seasonal,0.48384589184350096,0.2380456330253482,1,KR_bsts
+4,KR_tslm,KReger-tslm_fourier,0.4877587992662829,0.24161043357026823,1,KR_tslm
+8,atsf_meanNB,atsf-meannonbs,0.5948872206689177,0.27355121912552677,2,"atsf_mean, atsf_meanNB"
+1,KR_snaive_bc,KReger-snaive_bc_bs,0.62591637330087,0.2409240919754725,3,"ata_snv, KR_snaive_bc, syed_snv"

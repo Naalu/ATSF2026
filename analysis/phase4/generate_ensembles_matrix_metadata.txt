@@ -1,0 +1,23 @@
+Phase 4D: four-ensemble generation + LOO-CV comparison matrix
+Generated: 2026-04-28 19:05:03
+
+Ensembles generated (134 CSVs each, in analysis/phase4/staging/):
+  BMA-primary    (8 models, log-score BMA, tau frozen at Phase 3A)
+  Equal-primary  (8 models, uniform 1/8)
+  BMA-expanded   (10 models, log-score BMA, tau frozen at Phase 4C)
+  Equal-expanded (10 models, uniform 1/10)
+
+LOO-CV comparison matrix:
+# A tibble: 4 × 7
+  cell           pool          method loo_total_wis n_cells mean_wis ranking
+  <chr>          <chr>         <chr>          <dbl>   <int>    <dbl>   <int>
+1 BMA-expanded   expanded (10) BMA             614.    2508    0.245       1
+2 BMA-primary    primary (8)   BMA             630.    2508    0.251       2
+3 Equal-primary  primary (8)   Equal           732.    2508    0.292       3
+4 Equal-expanded expanded (10) Equal           751.    2508    0.299       4
+
+Winner: BMA-expanded
+
+Note: BMA ensembles use frozen full-validation weights for LOO
+scoring (no per-fold re-fitting). This is the same hygiene as Phase
+3A and Phase 4C — production weights apply unchanged at test time.

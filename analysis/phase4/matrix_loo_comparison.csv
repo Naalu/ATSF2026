@@ -1,0 +1,5 @@
+cell,pool,method,loo_total_wis,n_cells,mean_wis,ranking
+BMA-expanded,expanded (10),BMA,613.9839617303471,2508,0.24481019207749088,1
+BMA-primary,primary (8),BMA,630.2936486072532,2508,0.2513132570204359,2
+Equal-primary,primary (8),Equal,732.3098016889385,2508,0.29198955410244753,3
+Equal-expanded,expanded (10),Equal,750.6033018326552,2508,0.2992836131709152,4

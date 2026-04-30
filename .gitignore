@@ -2,3 +2,19 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# --- KReger additions ---
+
+# Node (slide tooling — kept in ../slides_workspace/, never here)
+node_modules/
+package.json
+package-lock.json
+
+# Slide outputs (in case any get regenerated here by accident)
+slides/
+*.pptx
+
+# OS
+.DS_Store
+**/.DS_Store
+Thumbs.db

@@ -1,0 +1,18 @@
+team_name: "Reger"
+team_abbr: "KReger"
+model_name: "Bayesian Structural Time Series with Annual Seasonality"
+model_abbr: "bsts_seasonal"
+designated_model: false
+model_contributors: [
+  {
+    "name": "Karl Reger",
+    "affiliation": "Northern Arizona University",
+    "email": "kcr28@nau.edu"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: "ILI%"
+methods: "Bayesian Structural Time Series with local linear trend and 52-week seasonal component. MCMC posterior predictive samples yield empirical quantiles."
+methods_long: "Univariate state-space model fit independently per location using the bsts R package (Scott & Varian 2014). State specification: AddLocalLinearTrend (level + slope, both Gaussian random walks) plus AddSeasonal with nseasons=52 (annual cycle, sum-to-zero constraint). MCMC sampler runs 1100 iterations with 100 burn-in, yielding 1000 posterior predictive draws per (location, horizon). Forecasts produced via predict.bsts() on the raw wILI scale (no Box-Cox transform). The 23 hub quantile levels are computed empirically from the posterior draws and floored at zero. Distinct from the other KReger candidates: uncertainty arises from MCMC over the latent state rather than from parametric ARIMA/ETS innovations or bootstrap residual resampling."
+ensemble_of_models: false
+ensemble_of_hub_models: false

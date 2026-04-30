@@ -1,0 +1,19 @@
+team_name: "hcr64"
+team_abbr: "hcr64"
+model_name: "rw_driftNOBS"
+model_abbr: "rw_driftNOBS"
+designated_model: true
+model_contributors: [
+  {
+    "name": "Hugh Raggett",
+    "affiliation": "Northern Arizona University",
+    "email": "hcr64@nau.edu",
+    "orcid": "0009-0002-3634-7156"
+  }
+]
+license: "CC-BY-4.0"
+data_inputs: ILI%
+methods: Uses most recent historical data, and no bootstrapping was used. 
+methods_long: Uses RW() and DRIFT() to make predictions. Both functions are from the fable package.
+ensemble_of_models: false
+ensemble_of_hub_models: false
